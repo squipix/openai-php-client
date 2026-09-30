@@ -141,6 +141,15 @@ $client->assertSent(Chat::class, 1);
 // Assert resource was not called
 $client->assertNotSent(Responses::class);
 
+// Assert Uploads or Evals calls
+$client->uploads()->assertSent(function (string $method, array $parameters): bool {
+    return $method === 'create' && $parameters['purpose'] === 'fine-tune';
+});
+
+$client->evals()->assertSent(function (string $method, array $parameters): bool {
+    return $method === 'create' && $parameters['name'] === 'customer-support-eval';
+});
+
 // Assert absolutely nothing was sent
 $client->assertNothingSent();
 ```

@@ -63,7 +63,7 @@ If you or your business relies on this package, it's important to support the de
 - [Meta Information](#meta-information)
 - [Troubleshooting](#troubleshooting)
 - [Testing](#testing)
-- [Webhooks][#webhooks]
+- [Webhooks](#webhooks)
 - [Services](#services)
   - [Azure](#azure)
 

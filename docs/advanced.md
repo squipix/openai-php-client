@@ -80,6 +80,21 @@ try {
 }
 ```
 
+### Unwrapping Webhooks Directly
+
+You can verify and parse the payload into an associative array in a single call using `unwrap()`:
+
+```php
+try {
+    $payload = $verifier->unwrap($request);
+
+    $eventType = $payload['type'];
+    $data = $payload['data'];
+} catch (WebhookVerificationException $e) {
+    // Verification failed or invalid JSON payload
+}
+```
+
 ---
 
 ## Azure OpenAI Service

@@ -10,15 +10,19 @@ This guide covers all key resources available on `OpenAI\Client`.
 - [Conversations & Items](#conversations--items)
 - [Containers & Code Interpreter](#containers--code-interpreter)
 - [Skills & Versions](#skills--skill-versions)
-- [Audio (Speech, Transcription, Translation)](#audio)
+- [Audio (Speech, Transcription, Voice Consents & Voices)](#audio)
 - [Images (DALL·E)](#images)
 - [Embeddings](#embeddings)
 - [Vector Stores & File Batches](#vector-stores)
+- [Uploads (Multipart Chunked)](#uploads)
 - [Files](#files)
 - [Batches](#batches)
-- [Fine-Tuning](#fine-tuning)
+- [Fine-Tuning & Checkpoints](#fine-tuning)
 - [Moderations](#moderations)
-- [Realtime Ephemeral Keys](#realtime-ephemeral-keys)
+- [Realtime (Sessions, Calls & Client Secrets)](#realtime)
+- [Evals & Runs](#evals)
+- [Chatkit (Beta)](#chatkit-beta)
+- [Organization Administration](#organization-administration)
 
 ---
 
@@ -72,6 +76,33 @@ $items = $client->responses()->listInputItems('resp_123', ['limit' => 10]);
 $client->responses()->delete('resp_123');
 ```
 
+### Compact Conversation History
+
+Compacts long conversation turns into encrypted compaction objects to save context tokens.
+
+```php
+$compacted = $client->responses()->compact([
+    'model' => 'gpt-4o',
+    'input' => 'Very long conversation text or message objects...',
+]);
+
+$compactId = $compacted->id; // 'resp_compact_...'
+$totalTokens = $compacted->usage->totalTokens;
+```
+
+### Input Tokens Inspection
+
+Calculates token counts for inputs before generating a response.
+
+```php
+$tokens = $client->responses()->inputTokens([
+    'model' => 'gpt-4o',
+    'input' => 'Calculate token count for this prompt.',
+]);
+
+echo $tokens->inputTokens; // e.g. 42
+```
+
 ---
 
 ## Chat Completions
@@ -90,6 +121,17 @@ $response = $client->chat()->create([
     'temperature' => 0.7,
 ]);
 
+echo $response->choices[0]->message->content;
+```
+
+### Retrieving a Chat Completion
+
+Retrieve an existing chat completion by ID.
+
+```php
+$response = $client->chat()->retrieve('chatcmpl-123');
+
+echo $response->id; // 'chatcmpl-123'
 echo $response->choices[0]->message->content;
 ```
 
@@ -285,6 +327,41 @@ $translation = $client->audio()->translate([
 echo $translation->text;
 ```
 
+### Voice Consents
+
+Create and manage voice consent recordings required before creating custom voices.
+
+```php
+// Create consent record
+$consent = $client->audio()->voiceConsents()->create([
+    'name' => 'Jane Doe',
+    'language' => 'en-US',
+    'recording' => fopen('consent_recording.mp3', 'r'),
+]);
+
+// List and retrieve consents
+$consents = $client->audio()->voiceConsents()->list();
+$details = $client->audio()->voiceConsents()->retrieve($consent->id);
+
+// Update or delete consent
+$client->audio()->voiceConsents()->update($consent->id, ['name' => 'Jane Doe Updated']);
+$client->audio()->voiceConsents()->delete($consent->id);
+```
+
+### Custom Voices
+
+Create custom voices with user consent and sample audio recordings.
+
+```php
+$voice = $client->audio()->voices()->create([
+    'name' => 'Brand Spokesperson Voice',
+    'consent' => $consent->id,
+    'audio_sample' => fopen('voice_sample.mp3', 'r'),
+]);
+
+echo $voice->id; // 'voice_1234'
+```
+
 ---
 
 ## Images
@@ -445,16 +522,304 @@ $categories = $result->results[0]->categories;
 
 ---
 
-## Realtime Ephemeral Keys
+## Uploads
 
-Generate ephemeral client tokens for browser or mobile WebRTC / WebSocket direct sessions without leaking master API keys.
+Upload large files (>100MB up to 512MB) in multiple parts for fine-tuning or assistants.
 
 ```php
-$session = $client->realtime()->createSession([
-    'model' => 'gpt-4o-realtime-preview',
-    'modalities' => ['audio', 'text'],
-    'instructions' => 'You are a friendly customer service assistant.',
+// 1. Create upload session
+$upload = $client->uploads()->create([
+    'filename' => 'large_dataset.jsonl',
+    'purpose' => 'fine-tune',
+    'bytes' => 104857600,
+    'mime_type' => 'text/jsonl',
 ]);
 
-$ephemeralToken = $session->clientSecret->value;
+// 2. Upload chunk parts
+$part = $client->uploads()->uploadPart(
+    uploadId: $upload->id,
+    parameters: [
+        'data' => fopen('chunk_part_1.bin', 'r'),
+    ]
+);
+
+// 3. Complete upload
+$completed = $client->uploads()->complete(
+    uploadId: $upload->id,
+    parameters: [
+        'part_ids' => [$part->id],
+    ]
+);
+
+echo $completed->file->id; // File is ready for use
+
+// Or cancel if aborted
+// $client->uploads()->cancel($upload->id);
 ```
+
+---
+
+## Files
+
+Upload, retrieve, and delete files stored on OpenAI's servers.
+
+```php
+// Upload for fine-tuning or assistants
+$file = $client->files()->upload([
+    'purpose' => 'fine-tune',
+    'file' => fopen('training_data.jsonl', 'r'),
+]);
+
+// List files
+$files = $client->files()->list();
+
+// Retrieve file content
+$contents = $client->files()->download($file->id);
+
+// Delete file
+$client->files()->delete($file->id);
+```
+
+---
+
+## Batches
+
+Execute large batches of API calls asynchronously with 24-hour turnaround and reduced cost.
+
+```php
+$batch = $client->batches()->create([
+    'input_file_id' => 'file-input-batch-123',
+    'endpoint' => '/v1/chat/completions',
+    'completion_window' => '24h',
+]);
+
+// Poll status
+$status = $client->batches()->retrieve($batch->id);
+
+// Cancel if needed
+$client->batches()->cancel($batch->id);
+```
+
+---
+
+## Fine-Tuning
+
+Tailor models with custom training datasets and manage checkpoint permissions across projects.
+
+```php
+$job = $client->fineTuning()->createJob([
+    'training_file' => 'file-training-xyz',
+    'model' => 'gpt-4o-mini-2024-07-18',
+]);
+
+// List checkpoints for the job
+$checkpoints = $client->fineTuning()->listJobCheckpoints($job->id);
+
+// Manage checkpoint permissions across organization projects
+$permission = $client->fineTuning()->checkpoints()->createPermission('ftckpt_123', [
+    'project_ids' => ['proj_456'],
+]);
+$client->fineTuning()->checkpoints()->deletePermission('ftckpt_123', $permission->data[0]->id);
+
+// Cancel job
+$client->fineTuning()->cancel($job->id);
+```
+
+---
+
+## Moderations
+
+Classify text against OpenAI's usage policies.
+
+```php
+$result = $client->moderations()->create([
+    'model' => 'omni-moderation-latest',
+    'input' => 'Sample text to review...',
+]);
+
+$flagged = $result->results[0]->flagged; // bool
+$categories = $result->results[0]->categories;
+```
+
+---
+
+## Realtime
+
+Interact with the Realtime API for ultra-low latency voice/multimodal sessions, SIP/WebRTC call orchestration, and client secrets.
+
+### Sessions & Tokens
+
+```php
+// Create ephemeral session token for browser or mobile client
+$session = $client->realtime()->token([
+    'model' => 'gpt-4o-realtime-preview',
+]);
+$ephemeralToken = $session->clientSecret->value;
+
+// Ephemeral token for transcription
+$transcribe = $client->realtime()->transcribeToken();
+```
+
+### Realtime Calls
+
+Initiate and control active SIP/WebRTC calls.
+
+```php
+// Create call
+$call = $client->realtime()->calls()->create([
+    'session' => ['model' => 'gpt-4o-realtime-preview'],
+]);
+
+// Retrieve call
+$callDetails = $client->realtime()->calls()->retrieve($call->id);
+
+// Accept, refer, or hang up call
+$client->realtime()->calls()->accept($call->id);
+$client->realtime()->calls()->refer($call->id, ['target' => 'sip:support@domain.com']);
+$client->realtime()->calls()->hangup($call->id);
+```
+
+### Realtime Client Secrets
+
+Create ephemeral client secrets for browser connections with restricted lifetimes.
+
+```php
+$secret = $client->realtime()->clientSecrets()->create([
+    'session' => [
+        'model' => 'gpt-4o-realtime-preview',
+        'voice' => 'alloy',
+    ],
+]);
+
+echo $secret->value;
+```
+
+---
+
+## Evals
+
+Create, execute, and monitor model evaluations and eval runs to track benchmark performance.
+
+### Manage Evaluations
+
+```php
+// Create evaluation
+$eval = $client->evals()->create([
+    'name' => 'customer-support-eval',
+    'description' => 'Evaluates support response tone and accuracy',
+]);
+
+// Retrieve & update
+$evalDetails = $client->evals()->retrieve($eval->id);
+$client->evals()->modify($eval->id, ['description' => 'Updated description']);
+
+// List & delete
+$evalList = $client->evals()->list();
+$client->evals()->delete($eval->id);
+```
+
+### Evaluation Runs
+
+```php
+// Create an evaluation run
+$run = $client->evals()->runs()->create(
+    evalId: 'eval_123',
+    parameters: [
+        'model' => 'gpt-4o',
+    ]
+);
+
+// Retrieve & list runs
+$runDetails = $client->evals()->runs()->retrieve('eval_123', $run->id);
+$runs = $client->evals()->runs()->list('eval_123');
+
+// Delete run
+$client->evals()->runs()->delete('eval_123', $run->id);
+```
+
+---
+
+## Chatkit (Beta)
+
+Interact with OpenAI Chatkit conversational workflows, user sessions, and chat threads.
+
+### Sessions
+
+```php
+// Create a client session token
+$session = $client->chatkit()->sessions()->create([
+    'workflow_id' => 'wf_abc123',
+    'user' => 'user_42',
+]);
+
+$clientSecret = $session->clientSecret;
+```
+
+### Threads & Items
+
+```php
+// Create and retrieve thread
+$thread = $client->chatkit()->threads()->create([
+    'workflow_id' => 'wf_abc123',
+]);
+$threadDetails = $client->chatkit()->threads()->retrieve($thread->id);
+
+// List thread items (messages)
+$items = $client->chatkit()->threads()->items()->list(
+    threadId: $thread->id,
+    parameters: ['limit' => 20],
+);
+
+// Delete thread
+$client->chatkit()->threads()->delete($thread->id);
+```
+
+---
+
+## Organization Administration
+
+Manage organization-level audit logs, user invites, team members, projects, and administrative API keys. Requires an Organization Admin Key (`sk-admin-...`).
+
+### Audit Logs
+
+```php
+$logs = $client->organization()->auditLogs()->list([
+    'limit' => 50,
+]);
+
+foreach ($logs->data as $log) {
+    echo $log->type . ' by ' . $log->actor->type;
+}
+```
+
+### Invites & Users
+
+```php
+// Send invitation
+$invite = $client->organization()->invites()->create([
+    'email' => 'engineer@example.com',
+    'role' => 'reader',
+]);
+$client->organization()->invites()->delete($invite->id);
+
+// Manage existing users
+$users = $client->organization()->users()->list();
+$user = $client->organization()->users()->retrieve('user_123');
+$client->organization()->users()->modify('user_123', ['role' => 'owner']);
+$client->organization()->users()->delete('user_123');
+```
+
+### Projects & Admin API Keys
+
+```php
+// Projects
+$project = $client->organization()->projects()->create(['name' => 'Internal AI Sandbox']);
+$projects = $client->organization()->projects()->list();
+$client->organization()->projects()->archive($project->id);
+
+// Admin API Keys
+$adminKey = $client->organization()->adminApiKeys()->create(['name' => 'CI Deployment Key']);
+$keys = $client->organization()->adminApiKeys()->list();
+$client->organization()->adminApiKeys()->delete($adminKey->id);
+```
+
