@@ -26,4 +26,9 @@ final class ChatTestResource implements ChatContract
     {
         return $this->record(__FUNCTION__, func_get_args());
     }
+
+    public function retrieve(string $id): CreateResponse
+    {
+        return $this->record(__FUNCTION__, func_get_args());
+    }
 }

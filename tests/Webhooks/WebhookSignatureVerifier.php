@@ -216,6 +216,49 @@ it('should handle secret prefixes', function () {
         );
 });
 
+it('should unwrap valid webhook payload', function () {
+    $secret = 'whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw';
+    $messageId = 'msg_2KWPBgLlAfxdpx2AI54pPJ85f4W';
+    $timestamp = time();
+    $payload = '{"id":"evt_123","object":"event","data":{"status":"completed"}}';
+
+    $verifier = new WebhookSignatureVerifier($secret);
+    $signature = $verifier->sign($messageId, $timestamp, $payload);
+    $request = createWebhookRequest([
+        'webhook-id' => $messageId,
+        'webhook-timestamp' => $timestamp,
+        'webhook-signature' => $signature,
+    ], $payload);
+
+    $unwrapped = $verifier->unwrap($request);
+
+    expect($unwrapped)->toBe([
+        'id' => 'evt_123',
+        'object' => 'event',
+        'data' => [
+            'status' => 'completed',
+        ],
+    ]);
+});
+
+it('should throw on unwrap with invalid json', function () {
+    $secret = 'whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw';
+    $messageId = 'msg_2KWPBgLlAfxdpx2AI54pPJ85f4W';
+    $timestamp = time();
+    $payload = 'invalid-json';
+
+    $verifier = new WebhookSignatureVerifier($secret);
+    $signature = $verifier->sign($messageId, $timestamp, $payload);
+    $request = createWebhookRequest([
+        'webhook-id' => $messageId,
+        'webhook-timestamp' => $timestamp,
+        'webhook-signature' => $signature,
+    ], $payload);
+
+    expect(static fn () => $verifier->unwrap($request))
+        ->toThrow(UnexpectedValueException::class, 'Invalid JSON payload');
+});
+
 /**
  * @throws InvalidArgumentException
  */

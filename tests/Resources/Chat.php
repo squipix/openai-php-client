@@ -177,3 +177,22 @@ test('handles error messages in stream', function () {
                 ->and($e->getErrorType())->toBe('server_error');
         });
 });
+
+test('retrieve', function () {
+    $client = mockClient('GET', 'chat/completions/chatcmpl-123', [], OpenAI\ValueObjects\Transporter\Response::from(chatCompletion(), metaHeaders()));
+
+    $result = $client->chat()->retrieve('chatcmpl-123');
+
+    expect($result)
+        ->toBeInstanceOf(CreateResponse::class)
+        ->id->toBe('chatcmpl-123')
+        ->object->toBe('chat.completion')
+        ->created->toBe(1677652288)
+        ->model->toBe('gpt-3.5-turbo')
+        ->choices->toBeArray()->toHaveCount(1)
+        ->choices->each->toBeInstanceOf(CreateResponseChoice::class)
+        ->usage->toBeInstanceOf(CreateResponseUsage::class);
+
+    expect($result->meta())
+        ->toBeInstanceOf(MetaInformation::class);
+});

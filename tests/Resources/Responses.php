@@ -4,9 +4,11 @@ use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Stream;
 use OpenAI\Exceptions\InvalidArgumentException;
 use OpenAI\Responses\Meta\MetaInformation;
+use OpenAI\Responses\Responses\CompactResponse;
 use OpenAI\Responses\Responses\CreateResponse;
 use OpenAI\Responses\Responses\CreateStreamedResponse;
 use OpenAI\Responses\Responses\DeleteResponse;
+use OpenAI\Responses\Responses\InputTokensResponse;
 use OpenAI\Responses\Responses\ListInputItems;
 use OpenAI\Responses\Responses\Output\OutputApplyPatchToolCall;
 use OpenAI\Responses\Responses\ReferencePromptObject;
@@ -402,6 +404,52 @@ test('cancel', function () {
         ->object->toBe('response')
         ->createdAt->toBe(1741484430)
         ->status->toBe('completed');
+
+    expect($result->meta())
+        ->toBeInstanceOf(MetaInformation::class);
+});
+
+test('compact', function () {
+    $client = mockClient('POST', 'responses/compact', [
+        'model' => 'gpt-4o',
+        'input' => 'long conversation to compact',
+    ], OpenAI\ValueObjects\Transporter\Response::from(responseCompactionResource(), metaHeaders()));
+
+    $result = $client->responses()->compact([
+        'model' => 'gpt-4o',
+        'input' => 'long conversation to compact',
+    ]);
+
+    expect($result)
+        ->toBeInstanceOf(CompactResponse::class)
+        ->id->toBe('resp_compact_67ccf18ef5fc8190b16dbee19bc54e5f087bb177ab789d5c')
+        ->object->toBe('response.compaction')
+        ->createdAt->toBe(1741484430)
+        ->output->toBeArray()
+        ->output->toHaveCount(1)
+        ->usage->inputTokens->toBe(139)
+        ->usage->outputTokens->toBe(438)
+        ->usage->totalTokens->toBe(577);
+
+    expect($result->meta())
+        ->toBeInstanceOf(MetaInformation::class);
+});
+
+test('input tokens', function () {
+    $client = mockClient('POST', 'responses/input_tokens', [
+        'model' => 'gpt-4o',
+        'input' => 'hello world',
+    ], OpenAI\ValueObjects\Transporter\Response::from(responseInputTokensResource(), metaHeaders()));
+
+    $result = $client->responses()->inputTokens([
+        'model' => 'gpt-4o',
+        'input' => 'hello world',
+    ]);
+
+    expect($result)
+        ->toBeInstanceOf(InputTokensResponse::class)
+        ->object->toBe('response.input_tokens')
+        ->inputTokens->toBe(42);
 
     expect($result->meta())
         ->toBeInstanceOf(MetaInformation::class);

@@ -13,21 +13,25 @@ use OpenAI\Resources\Assistants;
 use OpenAI\Resources\Audio;
 use OpenAI\Resources\Batches;
 use OpenAI\Resources\Chat;
+use OpenAI\Resources\Chatkit;
 use OpenAI\Resources\Completions;
 use OpenAI\Resources\Containers;
 use OpenAI\Resources\Conversations;
 use OpenAI\Resources\Edits;
 use OpenAI\Resources\Embeddings;
+use OpenAI\Resources\Evals;
 use OpenAI\Resources\Files;
 use OpenAI\Resources\FineTunes;
 use OpenAI\Resources\FineTuning;
 use OpenAI\Resources\Images;
 use OpenAI\Resources\Models;
 use OpenAI\Resources\Moderations;
+use OpenAI\Resources\Organization;
 use OpenAI\Resources\Realtime;
 use OpenAI\Resources\Responses;
 use OpenAI\Resources\Skills;
 use OpenAI\Resources\Threads;
+use OpenAI\Resources\Uploads;
 use OpenAI\Resources\VectorStores;
 
 final class Client implements ClientContract
@@ -142,6 +146,16 @@ final class Client implements ClientContract
     }
 
     /**
+     * Manage multipart uploads for large files.
+     *
+     * @see https://developers.openai.com/api/reference/resources/uploads
+     */
+    public function uploads(): Uploads
+    {
+        return new Uploads($this->transporter);
+    }
+
+    /**
      * List and describe the various models available in the API.
      *
      * @see https://platform.openai.com/docs/api-reference/models
@@ -241,5 +255,35 @@ final class Client implements ClientContract
     public function vectorStores(): VectorStoresContract
     {
         return new VectorStores($this->transporter);
+    }
+
+    /**
+     * Create, manage, and run evaluations to measure model performance.
+     *
+     * @see https://platform.openai.com/docs/api-reference/evals
+     */
+    public function evals(): Evals
+    {
+        return new Evals($this->transporter);
+    }
+
+    /**
+     * Build customizable, agentic chat interfaces with sessions and threads.
+     *
+     * @see https://platform.openai.com/docs/api-reference/chatkit
+     */
+    public function chatkit(): Chatkit
+    {
+        return new Chatkit($this->transporter);
+    }
+
+    /**
+     * Manage organization-level resources including audit logs, invites, users, projects, and admin API keys.
+     *
+     * @see https://platform.openai.com/docs/api-reference/organization
+     */
+    public function organization(): Organization
+    {
+        return new Organization($this->transporter);
     }
 }

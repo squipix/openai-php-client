@@ -44,3 +44,16 @@ it('records a streamed create create request', function () {
             $parameters['messages'][0]['content'] === 'Hello!';
     });
 });
+
+it('records a chat retrieve request', function () {
+    $fake = new ClientFake([
+        CreateResponse::fake(),
+    ]);
+
+    $fake->chat()->retrieve('chatcmpl-123');
+
+    $fake->assertSent(Chat::class, function ($method, $completionId) {
+        return $method === 'retrieve' &&
+            $completionId === 'chatcmpl-123';
+    });
+});

@@ -53,4 +53,19 @@ final class Chat implements ChatContract
 
         return new StreamResponse(CreateStreamedResponse::class, $response);
     }
+
+    /**
+     * Retrieves a stored chat completion with the given ID.
+     *
+     * @see https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/retrieve
+     */
+    public function retrieve(string $id): CreateResponse
+    {
+        $payload = Payload::retrieve('chat/completions', $id);
+
+        /** @var Response<array{id: string, object: string, created: int, model: string, system_fingerprint?: string, choices: array<int, array{index: int, message: array{role: string, content: ?string, reasoning_content?: ?string, function_call?: array{name: string, arguments: string}, tool_calls?: array<int, array{id: string, type: string, function: array{name: string, arguments: string}}>}, logprobs: ?array{content: ?array<int, array{token: string, logprob: float, bytes: ?array<int, int>}>}, finish_reason: string|null}>, usage: array{prompt_tokens: int, completion_tokens: int|null, total_tokens: int}}> $response */
+        $response = $this->transporter->requestObject($payload);
+
+        return CreateResponse::from($response->data(), $response->meta());
+    }
 }

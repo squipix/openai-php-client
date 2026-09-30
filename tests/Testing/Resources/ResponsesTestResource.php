@@ -1,8 +1,10 @@
 <?php
 
 use OpenAI\Resources\Responses;
+use OpenAI\Responses\Responses\CompactResponse;
 use OpenAI\Responses\Responses\CreateResponse;
 use OpenAI\Responses\Responses\DeleteResponse;
+use OpenAI\Responses\Responses\InputTokensResponse;
 use OpenAI\Responses\Responses\ListInputItems;
 use OpenAI\Responses\Responses\RetrieveResponse;
 use OpenAI\Testing\ClientFake;
@@ -83,5 +85,39 @@ it('records a response list request', function () {
     $fake->assertSent(Responses::class, function ($method, $responseId) {
         return $method === 'list' &&
             $responseId === 'asst_SMzoVX8XmCZEg1EbMHoAm8tc';
+    });
+});
+
+it('records a response compact request', function () {
+    $fake = new ClientFake([
+        CompactResponse::fake(),
+    ]);
+
+    $fake->responses()->compact([
+        'model' => 'gpt-4o',
+        'input' => 'compact this',
+    ]);
+
+    $fake->assertSent(Responses::class, function ($method, $parameters) {
+        return $method === 'compact' &&
+            $parameters['model'] === 'gpt-4o' &&
+            $parameters['input'] === 'compact this';
+    });
+});
+
+it('records a response input tokens request', function () {
+    $fake = new ClientFake([
+        InputTokensResponse::fake(),
+    ]);
+
+    $fake->responses()->inputTokens([
+        'model' => 'gpt-4o',
+        'input' => 'input tokens check',
+    ]);
+
+    $fake->assertSent(Responses::class, function ($method, $parameters) {
+        return $method === 'inputTokens' &&
+            $parameters['model'] === 'gpt-4o' &&
+            $parameters['input'] === 'input tokens check';
     });
 });

@@ -43,4 +43,14 @@ final class AudioTestResource implements AudioContract
     {
         return $this->record(__FUNCTION__, func_get_args());
     }
+
+    public function voiceConsents(): AudioVoiceConsentsTestResource
+    {
+        return new AudioVoiceConsentsTestResource($this->fake);
+    }
+
+    public function voices(): AudioVoicesTestResource
+    {
+        return new AudioVoicesTestResource($this->fake);
+    }
 }

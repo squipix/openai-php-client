@@ -51,4 +51,24 @@ final class Realtime implements RealtimeContract
 
         return TranscriptionSessionResponse::from($response->data());
     }
+
+    /**
+     * Manage Realtime calls.
+     *
+     * @see https://platform.openai.com/docs/api-reference/realtime-calls
+     */
+    public function calls(): RealtimeCalls
+    {
+        return new RealtimeCalls($this->transporter);
+    }
+
+    /**
+     * Manage Realtime client secrets.
+     *
+     * @see https://platform.openai.com/docs/api-reference/realtime-client-secrets
+     */
+    public function clientSecrets(): RealtimeClientSecrets
+    {
+        return new RealtimeClientSecrets($this->transporter);
+    }
 }

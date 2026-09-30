@@ -4,6 +4,7 @@ namespace OpenAI\Testing\Resources;
 
 use OpenAI\Contracts\Resources\FineTuningContract;
 use OpenAI\Resources\FineTuning;
+use OpenAI\Responses\FineTuning\Checkpoints\ListJobCheckpointsResponse;
 use OpenAI\Responses\FineTuning\ListJobEventsResponse;
 use OpenAI\Responses\FineTuning\ListJobsResponse;
 use OpenAI\Responses\FineTuning\RetrieveJobResponse;
@@ -41,5 +42,15 @@ final class FineTuningTestResource implements FineTuningContract
     public function listJobEvents(string $jobId, array $parameters = []): ListJobEventsResponse
     {
         return $this->record(__FUNCTION__, func_get_args());
+    }
+
+    public function listJobCheckpoints(string $jobId, array $parameters = []): ListJobCheckpointsResponse
+    {
+        return $this->record(__FUNCTION__, func_get_args());
+    }
+
+    public function checkpoints(): FineTuningCheckpointsTestResource
+    {
+        return new FineTuningCheckpointsTestResource($this->fake);
     }
 }

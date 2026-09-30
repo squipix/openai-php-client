@@ -55,4 +55,18 @@ interface AudioContract
      * @param  array<string, mixed>  $parameters
      */
     public function translate(array $parameters): TranslationResponse;
+
+    /**
+     * Manage audio voice consent records.
+     *
+     * @see https://developers.openai.com/api/reference/resources/audio/subresources/voice_consents
+     */
+    public function voiceConsents(): AudioVoiceConsentsContract;
+
+    /**
+     * Manage custom audio voices.
+     *
+     * @see https://developers.openai.com/api/reference/resources/audio/subresources/voices
+     */
+    public function voices(): AudioVoicesContract;
 }

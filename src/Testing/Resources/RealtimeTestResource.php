@@ -26,4 +26,14 @@ final class RealtimeTestResource implements RealtimeContract
     {
         return $this->record(__FUNCTION__, func_get_args());
     }
+
+    public function calls(): RealtimeCallsTestResource
+    {
+        return new RealtimeCallsTestResource($this->fake);
+    }
+
+    public function clientSecrets(): RealtimeClientSecretsTestResource
+    {
+        return new RealtimeClientSecretsTestResource($this->fake);
+    }
 }

@@ -46,8 +46,12 @@ If you or your business relies on this package, it's important to support the de
   - [Vector Stores Resource](#vector-stores-resource)
   - [Vector Stores Files Resource](#vector-store-files-resource)
   - [Vector Stores File Batches Resource](#vector-store-file-batches-resource)
+  - [Uploads Resource](#uploads-resource)
   - [Batches Resource](#batches-resource)
-  - [Realtime Ephemeral Keys](#realtime-ephemeral-keys)
+  - [Realtime Resource](#realtime-resource)
+  - [Evals Resource](#evals-resource)
+  - [Chatkit Resource (beta)](#chatkit-resource-beta)
+  - [Organization Resource](#organization-resource)
   - [Completions Resource (legacy)](#completions-resource-legacy)
   - [Assistants Resource (deprecated)](#assistants-resource-deprecated)
   - [Thread Resource (deprecated)](#threads-resource-deprecated)
@@ -2026,7 +2030,70 @@ foreach ($response->data as $result) {
 $response->toArray(); // ['object' => 'list', ...]]
 ```
 
-### Realtime Ephemeral Keys
+### `Uploads` Resource
+
+Uploads allow you to upload large files in multiple parts.
+
+#### `create`
+
+Creates an intermediate Upload object for chunked uploads.
+
+```php
+$response = $client->uploads()->create([
+    'filename' => 'training_data.jsonl',
+    'purpose' => 'fine-tune',
+    'bytes' => 2147483648,
+    'mime_type' => 'text/jsonl',
+]);
+
+$response->id; // 'upload_abc123'
+$response->object; // 'upload'
+$response->status; // 'pending'
+```
+
+#### `uploadPart`
+
+Adds a Part to an Upload object by passing a stream resource.
+
+```php
+$part = $client->uploads()->uploadPart(
+    uploadId: 'upload_abc123',
+    parameters: [
+        'data' => fopen('/path/to/part1.bin', 'r'),
+    ]
+);
+
+$part->id; // 'part_abc123'
+$part->object; // 'upload.part'
+```
+
+#### `complete`
+
+Completes the Upload.
+
+```php
+$response = $client->uploads()->complete(
+    uploadId: 'upload_abc123',
+    parameters: [
+        'part_ids' => ['part_abc123', 'part_def456'],
+    ]
+);
+
+$response->status; // 'completed'
+$response->file->id; // 'file-abc123xyz'
+```
+
+#### `cancel`
+
+Cancels the Upload.
+
+```php
+$response = $client->uploads()->cancel('upload_abc123');
+
+$response->status; // 'cancelled'
+```
+
+### Realtime Resource
 
 #### `token`
 
@@ -2048,6 +2115,237 @@ $response = $client->realtime()->transcribeToken();
 
 $response->clientSecret->value // 'et-1234567890abcdefg'
 $response->clientSecret->expiresAt // 1717703267
+```
+
+#### `calls`
+
+Manage Realtime SIP/WebRTC calls and control active sessions.
+
+```php
+// Create a call
+$call = $client->realtime()->calls()->create([
+    'session' => ['model' => 'gpt-4o-realtime-preview'],
+]);
+
+// Retrieve call details
+$call = $client->realtime()->calls()->retrieve('call_123');
+
+// Accept, hangup, refer, or reject calls
+$client->realtime()->calls()->accept('call_123');
+$client->realtime()->calls()->refer('call_123', ['target' => 'sip:user@domain.com']);
+$client->realtime()->calls()->hangup('call_123');
+$client->realtime()->calls()->reject('call_123');
+```
+
+#### `clientSecrets`
+
+Create ephemeral client secrets for real-time WebRTC or WebSocket connections.
+
+```php
+$secret = $client->realtime()->clientSecrets()->create([
+    'session' => [
+        'model' => 'gpt-4o-realtime-preview',
+        'voice' => 'alloy',
+    ],
+]);
+
+$secret->value; // 'ek_secret_abc123'
+$secret->expiresAt; // 1717703267
+```
+
+### `Evals` Resource
+
+Manage evaluations and runs to measure model quality and performance.
+
+#### Manage Evals
+
+```php
+// Create an eval
+$eval = $client->evals()->create([
+    'name' => 'customer-support-eval',
+    'description' => 'Evaluates customer support responses',
+]);
+
+// Retrieve an eval
+$eval = $client->evals()->retrieve('eval_123');
+
+// Update an eval
+$eval = $client->evals()->modify('eval_123', [
+    'description' => 'Updated evaluation description',
+]);
+
+// List evals
+$evals = $client->evals()->list(['limit' => 20]);
+
+// Delete an eval
+$client->evals()->delete('eval_123');
+```
+
+#### Manage Runs
+
+```php
+// Create an eval run
+$run = $client->evals()->runs()->create(
+    evalId: 'eval_123',
+    parameters: [
+        'model' => 'gpt-4o',
+    ]
+);
+
+// Retrieve an eval run
+$run = $client->evals()->runs()->retrieve(
+    evalId: 'eval_123',
+    runId: 'run_abc456',
+);
+
+// List runs for an eval
+$runs = $client->evals()->runs()->list(
+    evalId: 'eval_123',
+    parameters: ['limit' => 10],
+);
+
+// Delete an eval run
+$client->evals()->runs()->delete(
+    evalId: 'eval_123',
+    runId: 'run_abc456',
+);
+```
+
+### `Chatkit` Resource (beta)
+
+Interact with OpenAI Chatkit conversational workflows and chat threads.
+
+#### `sessions`
+
+Create a client-scoped Chatkit session token.
+
+```php
+$session = $client->chatkit()->sessions()->create([
+    'workflow_id' => 'wf_123',
+    'user' => 'user-42',
+]);
+
+$session->clientSecret; // 'ck_sec_abc123'
+```
+
+#### `threads`
+
+Create, retrieve, update, list, and delete Chatkit threads and items.
+
+```php
+// Create a thread
+$thread = $client->chatkit()->threads()->create([
+    'workflow_id' => 'wf_123',
+]);
+
+// Retrieve a thread
+$thread = $client->chatkit()->threads()->retrieve('thread_123');
+
+// Modify thread metadata
+$thread = $client->chatkit()->threads()->modify('thread_123', [
+    'metadata' => ['department' => 'support'],
+]);
+
+// List threads
+$threads = $client->chatkit()->threads()->list(['limit' => 10]);
+
+// List thread items / messages
+$items = $client->chatkit()->threads()->items()->list(
+    threadId: 'thread_123',
+    parameters: ['limit' => 20],
+);
+
+// Delete a thread
+$client->chatkit()->threads()->delete('thread_123');
+```
+
+### `Organization` Resource
+
+Manage organization-level audit logs, user invites, team members, projects, and administrative API keys.
+
+#### `auditLogs`
+
+```php
+$logs = $client->organization()->auditLogs()->list([
+    'limit' => 50,
+]);
+
+foreach ($logs->data as $event) {
+    $event->id; // 'audit_log_123'
+    $event->type; // 'api_key.created'
+    $event->actor->type; // 'user'
+}
+```
+
+#### `invites`
+
+```php
+// Send an invite
+$invite = $client->organization()->invites()->create([
+    'email' => 'dev@example.com',
+    'role' => 'reader',
+]);
+
+// Retrieve, list, delete invites
+$invite = $client->organization()->invites()->retrieve('invite_123');
+$invites = $client->organization()->invites()->list();
+$client->organization()->invites()->delete('invite_123');
+```
+
+#### `users`
+
+```php
+// List organization users
+$users = $client->organization()->users()->list();
+
+// Retrieve user
+$user = $client->organization()->users()->retrieve('user_123');
+
+// Modify user role
+$user = $client->organization()->users()->modify('user_123', [
+    'role' => 'owner',
+]);
+
+// Remove user from organization
+$client->organization()->users()->delete('user_123');
+```
+
+#### `projects`
+
+```php
+// List and create projects
+$projects = $client->organization()->projects()->list();
+$project = $client->organization()->projects()->create([
+    'name' => 'Internal Knowledge Base',
+]);
+
+// Retrieve and modify projects
+$project = $client->organization()->projects()->retrieve('proj_123');
+$project = $client->organization()->projects()->modify('proj_123', [
+    'name' => 'Production AI',
+]);
+
+// Archive a project
+$project = $client->organization()->projects()->archive('proj_123');
+
+// Manage project users, service accounts, and API keys
+$projectUsers = $client->organization()->projects()->users()->list('proj_123');
+$serviceAccounts = $client->organization()->projects()->serviceAccounts()->list('proj_123');
+$apiKeys = $client->organization()->projects()->apiKeys()->list('proj_123');
+```
+
+#### `adminApiKeys`
+
+```php
+// Create organization admin API key
+$key = $client->organization()->adminApiKeys()->create([
+    'name' => 'CI Deployment Key',
+]);
+
+// Retrieve, list, delete admin API keys
+$key = $client->organization()->adminApiKeys()->retrieve('key_123');
+$keys = $client->organization()->adminApiKeys()->list();
+$client->organization()->adminApiKeys()->delete('key_123');
 ```
 
 ### `Completions` Resource (legacy)
@@ -3294,6 +3592,19 @@ try {
     // The request is verified
 } catch (WebhookVerificationException $exception) {
     // The request could not be verified
+}
+```
+
+You can also verify and unwrap the webhook payload directly into an associative array:
+
+```php
+try {
+    $payload = $verifier->unwrap($incomingRequest);
+    
+    $eventType = $payload['type'];
+    $data = $payload['data'];
+} catch (WebhookVerificationException $exception) {
+    // Verification failed or invalid payload
 }
 ```
 

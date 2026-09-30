@@ -11,22 +11,26 @@ use OpenAI\Testing\Requests\TestRequest;
 use OpenAI\Testing\Resources\AssistantsTestResource;
 use OpenAI\Testing\Resources\AudioTestResource;
 use OpenAI\Testing\Resources\BatchesTestResource;
+use OpenAI\Testing\Resources\ChatkitTestResource;
 use OpenAI\Testing\Resources\ChatTestResource;
 use OpenAI\Testing\Resources\CompletionsTestResource;
 use OpenAI\Testing\Resources\ContainersTestResource;
 use OpenAI\Testing\Resources\ConversationsTestResource;
 use OpenAI\Testing\Resources\EditsTestResource;
 use OpenAI\Testing\Resources\EmbeddingsTestResource;
+use OpenAI\Testing\Resources\EvalsTestResource;
 use OpenAI\Testing\Resources\FilesTestResource;
 use OpenAI\Testing\Resources\FineTunesTestResource;
 use OpenAI\Testing\Resources\FineTuningTestResource;
 use OpenAI\Testing\Resources\ImagesTestResource;
 use OpenAI\Testing\Resources\ModelsTestResource;
 use OpenAI\Testing\Resources\ModerationsTestResource;
+use OpenAI\Testing\Resources\OrganizationTestResource;
 use OpenAI\Testing\Resources\RealtimeTestResource;
 use OpenAI\Testing\Resources\ResponsesTestResource;
 use OpenAI\Testing\Resources\SkillsTestResource;
 use OpenAI\Testing\Resources\ThreadsTestResource;
+use OpenAI\Testing\Resources\UploadsTestResource;
 use OpenAI\Testing\Resources\VectorStoresTestResource;
 use PHPUnit\Framework\Assert as PHPUnit;
 use Throwable;
@@ -192,6 +196,11 @@ class ClientFake implements ClientContract
         return new FilesTestResource($this);
     }
 
+    public function uploads(): UploadsTestResource
+    {
+        return new UploadsTestResource($this);
+    }
+
     public function models(): ModelsTestResource
     {
         return new ModelsTestResource($this);
@@ -235,5 +244,20 @@ class ClientFake implements ClientContract
     public function vectorStores(): VectorStoresContract
     {
         return new VectorStoresTestResource($this);
+    }
+
+    public function evals(): EvalsTestResource
+    {
+        return new EvalsTestResource($this);
+    }
+
+    public function chatkit(): ChatkitTestResource
+    {
+        return new ChatkitTestResource($this);
+    }
+
+    public function organization(): OrganizationTestResource
+    {
+        return new OrganizationTestResource($this);
     }
 }

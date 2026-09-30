@@ -26,4 +26,18 @@ interface RealtimeContract
      * @param  array<string, mixed>  $parameters
      */
     public function transcribeToken(array $parameters = []): TranscriptionSessionResponse;
+
+    /**
+     * Manage Realtime calls.
+     *
+     * @see https://platform.openai.com/docs/api-reference/realtime-calls
+     */
+    public function calls(): RealtimeCallsContract;
+
+    /**
+     * Manage Realtime client secrets.
+     *
+     * @see https://platform.openai.com/docs/api-reference/realtime-client-secrets
+     */
+    public function clientSecrets(): RealtimeClientSecretsContract;
 }

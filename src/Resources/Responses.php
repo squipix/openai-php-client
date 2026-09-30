@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace OpenAI\Resources;
 
 use OpenAI\Contracts\Resources\ResponsesContract;
+use OpenAI\Responses\Responses\CompactResponse;
 use OpenAI\Responses\Responses\CreateResponse;
 use OpenAI\Responses\Responses\CreateStreamedResponse;
 use OpenAI\Responses\Responses\DeleteResponse;
+use OpenAI\Responses\Responses\InputTokensResponse;
 use OpenAI\Responses\Responses\ListInputItems;
 use OpenAI\Responses\Responses\RetrieveResponse;
 use OpenAI\Responses\StreamResponse;
@@ -18,6 +20,8 @@ use OpenAI\ValueObjects\Transporter\Response;
  * @phpstan-import-type CreateResponseType from CreateResponse
  * @phpstan-import-type RetrieveResponseType from RetrieveResponse
  * @phpstan-import-type ListInputItemsType from ListInputItems
+ * @phpstan-import-type CompactResponseType from CompactResponse
+ * @phpstan-import-type InputTokensResponseType from InputTokensResponse
  */
 final class Responses implements ResponsesContract
 {
@@ -145,6 +149,40 @@ final class Responses implements ResponsesContract
         $response = $this->transporter->requestObject($payload);
 
         return ListInputItems::from($response->data(), $response->meta());
+    }
+
+    /**
+     * Compacts a conversation history using a response compaction model.
+     *
+     * @see https://developers.openai.com/api/reference/resources/responses/methods/compact
+     *
+     * @param  array<string, mixed>  $parameters
+     */
+    public function compact(array $parameters): CompactResponse
+    {
+        $payload = Payload::create('responses/compact', $parameters);
+
+        /** @var Response<CompactResponseType> $response */
+        $response = $this->transporter->requestObject($payload);
+
+        return CompactResponse::from($response->data(), $response->meta());
+    }
+
+    /**
+     * Returns input token counts of the request without generating a response.
+     *
+     * @see https://developers.openai.com/api/reference/resources/responses/subresources/input_tokens
+     *
+     * @param  array<string, mixed>  $parameters
+     */
+    public function inputTokens(array $parameters): InputTokensResponse
+    {
+        $payload = Payload::create('responses/input_tokens', $parameters);
+
+        /** @var Response<InputTokensResponseType> $response */
+        $response = $this->transporter->requestObject($payload);
+
+        return InputTokensResponse::from($response->data(), $response->meta());
     }
 
     /**

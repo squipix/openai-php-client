@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace OpenAI\Resources;
 
 use OpenAI\Contracts\Resources\FineTuningContract;
+use OpenAI\Responses\FineTuning\Checkpoints\ListJobCheckpointsResponse;
 use OpenAI\Responses\FineTuning\ListJobEventsResponse;
 use OpenAI\Responses\FineTuning\ListJobsResponse;
 use OpenAI\Responses\FineTuning\RetrieveJobResponse;
 use OpenAI\ValueObjects\Transporter\Payload;
 use OpenAI\ValueObjects\Transporter\Response;
 
+/**
+ * @phpstan-import-type ListJobCheckpointsResponseType from ListJobCheckpointsResponse
+ */
 final class FineTuning implements FineTuningContract
 {
     use Concerns\Transportable;
@@ -96,5 +100,32 @@ final class FineTuning implements FineTuningContract
         $response = $this->transporter->requestObject($payload);
 
         return ListJobEventsResponse::from($response->data(), $response->meta());
+    }
+
+    /**
+     * List checkpoints for a fine-tuning job.
+     *
+     * @see https://developers.openai.com/api/reference/resources/fine_tuning/subresources/jobs/subresources/checkpoints/methods/list
+     *
+     * @param  array<string, mixed>  $parameters
+     */
+    public function listJobCheckpoints(string $jobId, array $parameters = []): ListJobCheckpointsResponse
+    {
+        $payload = Payload::retrieve('fine_tuning/jobs', $jobId, '/checkpoints', $parameters);
+
+        /** @var Response<ListJobCheckpointsResponseType> $response */
+        $response = $this->transporter->requestObject($payload);
+
+        return ListJobCheckpointsResponse::from($response->data(), $response->meta());
+    }
+
+    /**
+     * Manage fine-tuning checkpoint permissions.
+     *
+     * @see https://developers.openai.com/api/reference/resources/fine_tuning/subresources/checkpoints/subresources/permissions
+     */
+    public function checkpoints(): FineTuningCheckpoints
+    {
+        return new FineTuningCheckpoints($this->transporter);
     }
 }

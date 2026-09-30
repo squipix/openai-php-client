@@ -1279,3 +1279,40 @@ function responseOutputItemApplyPatchCallDoneEvent()
 {
     return fopen(__DIR__.'/Streams/ResponseOutputItemApplyPatchCallDone.txt', 'r');
 }
+
+/**
+ * @return array<string, mixed>
+ */
+function responseCompactionResource(): array
+{
+    return [
+        'id' => 'resp_compact_67ccf18ef5fc8190b16dbee19bc54e5f087bb177ab789d5c',
+        'object' => 'response.compaction',
+        'created_at' => 1741484430,
+        'output' => [
+            outputCompaction(),
+        ],
+        'usage' => [
+            'input_tokens' => 139,
+            'input_tokens_details' => [
+                'cached_tokens' => 0,
+            ],
+            'output_tokens' => 438,
+            'output_tokens_details' => [
+                'reasoning_tokens' => 64,
+            ],
+            'total_tokens' => 577,
+        ],
+    ];
+}
+
+/**
+ * @return array<string, mixed>
+ */
+function responseInputTokensResource(): array
+{
+    return [
+        'object' => 'response.input_tokens',
+        'input_tokens' => 42,
+    ];
+}

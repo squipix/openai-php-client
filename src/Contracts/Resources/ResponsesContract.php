@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace OpenAI\Contracts\Resources;
 
+use OpenAI\Responses\Responses\CompactResponse;
 use OpenAI\Responses\Responses\CreateResponse;
 use OpenAI\Responses\Responses\CreateStreamedResponse;
 use OpenAI\Responses\Responses\DeleteResponse;
+use OpenAI\Responses\Responses\InputTokensResponse;
 use OpenAI\Responses\Responses\ListInputItems;
 use OpenAI\Responses\Responses\RetrieveResponse;
 use OpenAI\Responses\StreamResponse;
@@ -74,6 +76,24 @@ interface ResponsesContract
      * @param  array<string, mixed>  $parameters
      */
     public function list(string $id, array $parameters = []): ListInputItems;
+
+    /**
+     * Compacts a conversation history using a response compaction model.
+     *
+     * @see https://developers.openai.com/api/reference/resources/responses/methods/compact
+     *
+     * @param  array<string, mixed>  $parameters
+     */
+    public function compact(array $parameters): CompactResponse;
+
+    /**
+     * Returns input token counts of the request without generating a response.
+     *
+     * @see https://developers.openai.com/api/reference/resources/responses/subresources/input_tokens
+     *
+     * @param  array<string, mixed>  $parameters
+     */
+    public function inputTokens(array $parameters): InputTokensResponse;
 
     /**
      * Manage conversations as a sub-resource of Responses namespace for convenience in tests.

@@ -1,6 +1,8 @@
 <?php
 
 use OpenAI\Enums\FineTuning\FineTuningEventLevel;
+use OpenAI\Responses\FineTuning\Checkpoints\CheckpointResponse;
+use OpenAI\Responses\FineTuning\Checkpoints\ListJobCheckpointsResponse;
 use OpenAI\Responses\FineTuning\ListJobEventsResponse;
 use OpenAI\Responses\FineTuning\ListJobEventsResponseEvent;
 use OpenAI\Responses\FineTuning\ListJobEventsResponseEventData;
@@ -182,4 +184,37 @@ test('list job events with params', function () {
         ->toBeInstanceOf(ListJobEventsResponse::class)
         ->data->toBeArray()->toHaveCount(2)
         ->data->each->toBeInstanceOf(ListJobEventsResponseEvent::class);
+});
+
+test('list job checkpoints', function () {
+    $client = mockClient('GET', 'fine_tuning/jobs/ftjob-AF1WoRqd3aJAHsqc9NY7iL8F/checkpoints', [], Response::from(checkpointListResource(), metaHeaders()));
+
+    $result = $client->fineTuning()->listJobCheckpoints('ftjob-AF1WoRqd3aJAHsqc9NY7iL8F');
+
+    expect($result)
+        ->toBeInstanceOf(ListJobCheckpointsResponse::class)
+        ->data->toBeArray()->toHaveCount(1)
+        ->data->each->toBeInstanceOf(CheckpointResponse::class);
+
+    expect($result->data[0])
+        ->id->toBe('ftckpt_zc4Q7MP6XxulcVzj4MZdwsAB')
+        ->object->toBe('fine_tuning.job.checkpoint')
+        ->createdAt->toBe(1721764867)
+        ->fineTunedModelCheckpoint->toBe('ft:gpt-4o-mini-2024-07-18:my-org:custom-suffix:96olL566:ckpt-step-2000')
+        ->fineTuningJobId->toBe('ftjob-abc123')
+        ->stepNumber->toBe(2000);
+
+    expect($result->meta())
+        ->toBeInstanceOf(MetaInformation::class);
+});
+
+test('list job checkpoints with params', function () {
+    $client = mockClient('GET', 'fine_tuning/jobs/ftjob-AF1WoRqd3aJAHsqc9NY7iL8F/checkpoints', ['limit' => 10], Response::from(checkpointListResource(), metaHeaders()));
+
+    $result = $client->fineTuning()->listJobCheckpoints('ftjob-AF1WoRqd3aJAHsqc9NY7iL8F', ['limit' => 10]);
+
+    expect($result)
+        ->toBeInstanceOf(ListJobCheckpointsResponse::class)
+        ->data->toBeArray()->toHaveCount(1)
+        ->data->each->toBeInstanceOf(CheckpointResponse::class);
 });

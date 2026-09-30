@@ -26,4 +26,11 @@ interface ChatContract
      * @return StreamResponse<CreateStreamedResponse>
      */
     public function createStreamed(array $parameters): StreamResponse;
+
+    /**
+     * Retrieves a stored chat completion with the given ID.
+     *
+     * @see https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/retrieve
+     */
+    public function retrieve(string $id): CreateResponse;
 }

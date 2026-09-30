@@ -45,6 +45,31 @@ readonly class WebhookSignatureVerifier
     }
 
     /**
+     * Verifies the request signature and returns the decoded JSON payload.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws WebhookVerificationException|UnexpectedValueException|RuntimeException
+     */
+    public function unwrap(RequestInterface $request): array
+    {
+        $this->verify($request);
+
+        $body = $request->getBody();
+        $payload = $body->getContents();
+        $body->rewind();
+
+        $data = json_decode($payload, true);
+
+        if (! is_array($data)) {
+            throw new UnexpectedValueException('Invalid JSON payload');
+        }
+
+        /** @var array<string, mixed> $data */
+        return $data;
+    }
+
+    /**
      * @param  array{webhook-id: ?non-falsy-string, webhook-timestamp: ?non-falsy-string, webhook-signature: ?non-falsy-string}  $headers
      *
      * @throws WebhookVerificationException

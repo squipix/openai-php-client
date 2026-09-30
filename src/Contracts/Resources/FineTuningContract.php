@@ -2,6 +2,7 @@
 
 namespace OpenAI\Contracts\Resources;
 
+use OpenAI\Responses\FineTuning\Checkpoints\ListJobCheckpointsResponse;
 use OpenAI\Responses\FineTuning\ListJobEventsResponse;
 use OpenAI\Responses\FineTuning\ListJobsResponse;
 use OpenAI\Responses\FineTuning\RetrieveJobResponse;
@@ -50,4 +51,20 @@ interface FineTuningContract
      * @param  array<string, mixed>  $parameters
      */
     public function listJobEvents(string $jobId, array $parameters = []): ListJobEventsResponse;
+
+    /**
+     * List checkpoints for a fine-tuning job.
+     *
+     * @see https://developers.openai.com/api/reference/resources/fine_tuning/subresources/jobs/subresources/checkpoints/methods/list
+     *
+     * @param  array<string, mixed>  $parameters
+     */
+    public function listJobCheckpoints(string $jobId, array $parameters = []): ListJobCheckpointsResponse;
+
+    /**
+     * Manage fine-tuning checkpoint permissions.
+     *
+     * @see https://developers.openai.com/api/reference/resources/fine_tuning/subresources/checkpoints/subresources/permissions
+     */
+    public function checkpoints(): FineTuningCheckpointsContract;
 }

@@ -6,21 +6,25 @@ use OpenAI\Contracts\Resources\AssistantsContract;
 use OpenAI\Contracts\Resources\AudioContract;
 use OpenAI\Contracts\Resources\BatchesContract;
 use OpenAI\Contracts\Resources\ChatContract;
+use OpenAI\Contracts\Resources\ChatkitContract;
 use OpenAI\Contracts\Resources\CompletionsContract;
 use OpenAI\Contracts\Resources\ContainersContract;
 use OpenAI\Contracts\Resources\ConversationsContract;
 use OpenAI\Contracts\Resources\EditsContract;
 use OpenAI\Contracts\Resources\EmbeddingsContract;
+use OpenAI\Contracts\Resources\EvalsContract;
 use OpenAI\Contracts\Resources\FilesContract;
 use OpenAI\Contracts\Resources\FineTunesContract;
 use OpenAI\Contracts\Resources\FineTuningContract;
 use OpenAI\Contracts\Resources\ImagesContract;
 use OpenAI\Contracts\Resources\ModelsContract;
 use OpenAI\Contracts\Resources\ModerationsContract;
+use OpenAI\Contracts\Resources\OrganizationContract;
 use OpenAI\Contracts\Resources\RealtimeContract;
 use OpenAI\Contracts\Resources\ResponsesContract;
 use OpenAI\Contracts\Resources\SkillsContract;
 use OpenAI\Contracts\Resources\ThreadsContract;
+use OpenAI\Contracts\Resources\UploadsContract;
 use OpenAI\Contracts\Resources\VectorStoresContract;
 
 interface ClientContract
@@ -106,6 +110,13 @@ interface ClientContract
     public function files(): FilesContract;
 
     /**
+     * Manage multipart uploads for large files.
+     *
+     * @see https://developers.openai.com/api/reference/resources/uploads
+     */
+    public function uploads(): UploadsContract;
+
+    /**
      * List and describe the various models available in the API.
      *
      * @see https://platform.openai.com/docs/api-reference/models
@@ -173,4 +184,25 @@ interface ClientContract
      * @see https://platform.openai.com/docs/api-reference/vector-stores
      */
     public function vectorStores(): VectorStoresContract;
+
+    /**
+     * Create, manage, and run evaluations to measure model performance.
+     *
+     * @see https://platform.openai.com/docs/api-reference/evals
+     */
+    public function evals(): EvalsContract;
+
+    /**
+     * Build customizable, agentic chat interfaces with sessions and threads.
+     *
+     * @see https://platform.openai.com/docs/api-reference/chatkit
+     */
+    public function chatkit(): ChatkitContract;
+
+    /**
+     * Manage organization-level resources including audit logs, invites, users, projects, and admin API keys.
+     *
+     * @see https://platform.openai.com/docs/api-reference/organization
+     */
+    public function organization(): OrganizationContract;
 }

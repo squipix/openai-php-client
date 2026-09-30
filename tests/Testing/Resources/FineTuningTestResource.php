@@ -1,6 +1,7 @@
 <?php
 
 use OpenAI\Resources\FineTuning;
+use OpenAI\Responses\FineTuning\Checkpoints\ListJobCheckpointsResponse;
 use OpenAI\Responses\FineTuning\ListJobEventsResponse;
 use OpenAI\Responses\FineTuning\ListJobsResponse;
 use OpenAI\Responses\FineTuning\RetrieveJobResponse;
@@ -70,6 +71,19 @@ it('records a fine tuning list job events request', function () {
 
     $fake->assertSent(FineTuning::class, function ($method, $parameters) {
         return $method === 'listJobEvents' &&
+            $parameters === 'ft-AF1WoRqd3aJAHsqc9NY7iL8F';
+    });
+});
+
+it('records a fine tuning list job checkpoints request', function () {
+    $fake = new ClientFake([
+        ListJobCheckpointsResponse::fake(),
+    ]);
+
+    $fake->fineTuning()->listJobCheckpoints('ft-AF1WoRqd3aJAHsqc9NY7iL8F');
+
+    $fake->assertSent(FineTuning::class, function ($method, $parameters) {
+        return $method === 'listJobCheckpoints' &&
             $parameters === 'ft-AF1WoRqd3aJAHsqc9NY7iL8F';
     });
 });

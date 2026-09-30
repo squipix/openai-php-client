@@ -104,4 +104,24 @@ final class Audio implements AudioContract
 
         return TranslationResponse::from($response->data(), $response->meta());
     }
+
+    /**
+     * Manage audio voice consent records.
+     *
+     * @see https://developers.openai.com/api/reference/resources/audio/subresources/voice_consents
+     */
+    public function voiceConsents(): AudioVoiceConsents
+    {
+        return new AudioVoiceConsents($this->transporter);
+    }
+
+    /**
+     * Manage custom audio voices.
+     *
+     * @see https://developers.openai.com/api/reference/resources/audio/subresources/voices
+     */
+    public function voices(): AudioVoices
+    {
+        return new AudioVoices($this->transporter);
+    }
 }
