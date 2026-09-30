@@ -9,21 +9,8 @@
 </p>
 
 ------
-**OpenAI PHP** is a community-maintained PHP API client that allows you to interact with the [Open AI API](https://platform.openai.com/docs/api-reference/introduction).
 
-- Follow the creator Nuno Maduro:
-    - YouTube: **[youtube.com/@nunomaduro](https://www.youtube.com/@nunomaduro)** — Videos every weekday
-    - Twitch: **[twitch.tv/enunomaduro](https://www.twitch.tv/enunomaduro)** — Streams (almost) every weekday
-    - Twitter / X: **[x.com/enunomaduro](https://x.com/enunomaduro)**
-    - LinkedIn: **[linkedin.com/in/nunomaduro](https://www.linkedin.com/in/nunomaduro)**
-    - Instagram: **[instagram.com/enunomaduro](https://www.instagram.com/enunomaduro)**
-    - Tiktok: **[tiktok.com/@enunomaduro](https://www.tiktok.com/@enunomaduro)**
-
-If you or your business relies on this package, it's important to support the developers who have contributed their time and effort to create and maintain this valuable tool:
-
-- Nuno Maduro: **[github.com/sponsors/nunomaduro](https://github.com/sponsors/nunomaduro)**
-- Sandro Gehri: **[github.com/sponsors/gehrisandro](https://github.com/sponsors/gehrisandro)**
-- Connor Tumbleson: **[github.com/sponsors/iBotPeaches](https://github.com/sponsors/iBotPeaches)**
+**OpenAI PHP** (`squipix/openai-php-client`) is a fork of the OpenAI PHP client with advanced features and expanded API coverage. Use it to interact with the [Open AI API](https://platform.openai.com/docs/api-reference/introduction).
 
 ## Table of Contents
 - [Get Started](#get-started)
