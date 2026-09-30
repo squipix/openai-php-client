@@ -37,6 +37,11 @@ final class EditStreamedResponse implements ResponseContract
     public static function from(array $attributes): self
     {
         $event = $attributes['type'] ?? throw new UnknownEventException('Missing event type in streamed response');
+
+        if (! is_string($event)) {
+            throw new UnknownEventException('Missing event type in streamed response');
+        }
+
         $meta = $attributes['__meta'];
         unset($attributes['__meta']);
 
@@ -48,7 +53,7 @@ final class EditStreamedResponse implements ResponseContract
         };
 
         return new self(
-            event: $event, // @phpstan-ignore-line
+            event: $event,
             response: $response,
         );
     }

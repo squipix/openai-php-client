@@ -190,6 +190,6 @@ final class StreamResponse implements ResponseHasMetaInformationContract, Respon
 
     public function meta(): MetaInformation
     {
-        return MetaInformation::from($this->response->getHeaders());
+        return MetaInformation::from(MetaInformation::headersFrom($this->response));
     }
 }

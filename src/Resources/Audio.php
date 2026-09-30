@@ -10,8 +10,8 @@ use OpenAI\Responses\Audio\TranscriptionResponse;
 use OpenAI\Responses\Audio\TranscriptionStreamResponse;
 use OpenAI\Responses\Audio\TranslationResponse;
 use OpenAI\Responses\StreamResponse;
+use OpenAI\ValueObjects\Transporter\AdaptableResponse;
 use OpenAI\ValueObjects\Transporter\Payload;
-use OpenAI\ValueObjects\Transporter\Response;
 
 final class Audio implements AudioContract
 {
@@ -63,7 +63,7 @@ final class Audio implements AudioContract
 
         $payload = Payload::upload('audio/transcriptions', $parameters);
 
-        /** @var Response<array{task: ?string, language: ?string, duration: ?float, segments: array<int, array{id: int, seek: int, start: float, end: float, text: string, tokens: array<int, int>, temperature: float, avg_logprob: float, compression_ratio: float, no_speech_prob: float, transient?: bool}>, words: array<int, array{word: string, start: float, end: float}>, text: string}> $response */
+        /** @var AdaptableResponse<array{task: ?string, language: ?string, duration: ?float, segments: array<int, array{id: int, seek: int, start: float, end: float, text: string, tokens: array<int, int>, temperature: float, avg_logprob: float, compression_ratio: float, no_speech_prob: float, transient?: bool}>, words: array<int, array{word: string, start: float, end: float}>, text: string}> $response */
         $response = $this->transporter->requestStringOrObject($payload);
 
         return TranscriptionResponse::from($response->data(), $response->meta());
@@ -99,7 +99,7 @@ final class Audio implements AudioContract
     {
         $payload = Payload::upload('audio/translations', $parameters);
 
-        /** @var Response<array{task: ?string, language: ?string, duration: ?float, segments: array<int, array{id: int, seek: int, start: float, end: float, text: string, tokens: array<int, int>, temperature: float, avg_logprob: float, compression_ratio: float, no_speech_prob: float, transient?: bool}>, text: string}> $response */
+        /** @var AdaptableResponse<array{task: ?string, language: ?string, duration: ?float, segments: array<int, array{id: int, seek: int, start: float, end: float, text: string, tokens: array<int, int>, temperature: float, avg_logprob: float, compression_ratio: float, no_speech_prob: float, transient?: bool}>, text: string}> $response */
         $response = $this->transporter->requestStringOrObject($payload);
 
         return TranslationResponse::from($response->data(), $response->meta());

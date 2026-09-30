@@ -61,10 +61,10 @@ final class ThreadRunStepResponseCodeInterpreter implements ResponseContract
         }
 
         if ($this->outputs) {
-            $response['outputs'] = array_map(
+            $response['outputs'] = array_values(array_map(
                 fn (ThreadRunStepResponseCodeInterpreterOutputImage|ThreadRunStepResponseCodeInterpreterOutputLogs $output): array => $output->toArray(),
                 $this->outputs,
-            );
+            ));
         }
 
         return $response;

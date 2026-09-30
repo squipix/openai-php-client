@@ -42,6 +42,10 @@ class ThreadRunStreamResponse implements ResponseContract
         $event = $attributes['__event'];
         unset($attributes['__event']);
 
+        if (! is_string($event)) {
+            throw new UnknownEventException('Missing event type in streamed response');
+        }
+
         $meta = $attributes['__meta'];
         unset($attributes['__meta']);
 
@@ -73,7 +77,7 @@ class ThreadRunStreamResponse implements ResponseContract
         };
 
         return new self(
-            $event, // @phpstan-ignore-line
+            $event,
             $response,
         );
     }

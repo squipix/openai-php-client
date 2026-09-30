@@ -10,7 +10,7 @@ final class CreateResponseResult
 {
     /**
      * @param  array<string, CreateResponseCategory>  $categories
-     * @param  array<string, array<string>>  $categoryAppliedInputTypes
+     * @param  array<string, array<int, string>>|null  $categoryAppliedInputTypes
      */
     private function __construct(
         public readonly array $categories,
@@ -40,10 +40,20 @@ final class CreateResponseResult
             ]);
         }
 
+        $categoryAppliedInputTypes = null;
+
+        if (isset($attributes['category_applied_input_types'])) {
+            $categoryAppliedInputTypes = [];
+
+            foreach ($attributes['category_applied_input_types'] as $category => $appliedTypes) {
+                $categoryAppliedInputTypes[$category] = array_values(array_map(strval(...), $appliedTypes));
+            }
+        }
+
         return new CreateResponseResult(
             $categories,
             $attributes['flagged'],
-            $attributes['category_applied_input_types'] ?? null,
+            $categoryAppliedInputTypes,
         );
     }
 

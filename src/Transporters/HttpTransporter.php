@@ -14,6 +14,7 @@ use OpenAI\Exceptions\RateLimitException;
 use OpenAI\Exceptions\ServerException;
 use OpenAI\Exceptions\TransporterException;
 use OpenAI\Exceptions\UnserializableResponse;
+use OpenAI\Responses\Meta\MetaInformation;
 use OpenAI\ValueObjects\Transporter\AdaptableResponse;
 use OpenAI\ValueObjects\Transporter\BaseUri;
 use OpenAI\ValueObjects\Transporter\Headers;
@@ -22,6 +23,7 @@ use OpenAI\ValueObjects\Transporter\QueryParams;
 use OpenAI\ValueObjects\Transporter\Response;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -31,6 +33,8 @@ final class HttpTransporter implements TransporterContract
 {
     /**
      * Creates a new Http Transporter instance.
+     *
+     * @param  Closure(RequestInterface): ResponseInterface  $streamHandler
      */
     public function __construct(
         private readonly ClientInterface $client,
@@ -74,7 +78,7 @@ final class HttpTransporter implements TransporterContract
             throw new UnserializableResponse($jsonException, $response);
         }
 
-        return Response::from($data, $response->getHeaders());
+        return Response::from($data, MetaInformation::headersFrom($response));
     }
 
     /**
@@ -93,7 +97,7 @@ final class HttpTransporter implements TransporterContract
         $this->throwIfJsonError($response, $contents);
 
         if (str_contains($response->getHeaderLine('Content-Type'), ContentType::TEXT_PLAIN->value)) {
-            return AdaptableResponse::from($contents, $response->getHeaders());
+            return AdaptableResponse::from($contents, MetaInformation::headersFrom($response));
         }
 
         try {
@@ -103,7 +107,7 @@ final class HttpTransporter implements TransporterContract
             throw new UnserializableResponse($jsonException, $response);
         }
 
-        return AdaptableResponse::from($data, $response->getHeaders());
+        return AdaptableResponse::from($data, MetaInformation::headersFrom($response));
     }
 
     /**
@@ -140,6 +144,9 @@ final class HttpTransporter implements TransporterContract
         return $response;
     }
 
+    /**
+     * @param  Closure(): ResponseInterface  $callable
+     */
     private function sendRequest(Closure $callable): ResponseInterface
     {
         try {

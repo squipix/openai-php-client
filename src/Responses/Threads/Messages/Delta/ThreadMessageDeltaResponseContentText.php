@@ -58,10 +58,10 @@ final class ThreadMessageDeltaResponseContentText implements ResponseContract
     {
         return [
             'value' => $this->value,
-            'annotations' => array_map(
+            'annotations' => array_values(array_map(
                 fn (ThreadMessageResponseContentTextAnnotationFilePathObject|ThreadMessageResponseContentTextAnnotationFileCitationObject $annotation): array => $annotation->toArray(),
                 $this->annotations,
-            ),
+            )),
         ];
     }
 }

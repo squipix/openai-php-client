@@ -1,5 +1,5 @@
 {
-    "name": "openai-php/client",
+    "name": "squipix/openai-php-client",
     "description": "OpenAI PHP is a supercharged PHP API client that allows you to interact with the Open AI API",
     "keywords": ["php", "openai", "sdk", "codex", "GPT-3", "DALL-E", "api", "client", "natural", "language", "processing"],
     "license": "MIT",
@@ -22,15 +22,15 @@
         "psr/http-message": "^1.1.0|^2.0.0"
     },
     "require-dev": {
-        "guzzlehttp/guzzle": "^7.10.0",
-        "guzzlehttp/psr7": "^2.8.0",
-        "laravel/pint": "^1.25.1",
-        "mockery/mockery": "^1.6.12",
-        "nunomaduro/collision": "^8.8.3",
+        "guzzlehttp/guzzle": "^8.2",
+        "guzzlehttp/psr7": "^3.1",
+		"laravel/pint": "^1.32",
+		"mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.9",
         "pestphp/pest": "^3.8.2|^4.1.4",
         "pestphp/pest-plugin-arch": "^3.1.1|^4.0.0",
         "pestphp/pest-plugin-type-coverage": "^3.5.1|^4.0.0",
-        "phpstan/phpstan": "^1.12.32",
+        "phpstan/phpstan": "2.2.16",
         "symfony/var-dumper": "^7.3.5"
     },
     "autoload": {

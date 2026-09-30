@@ -225,7 +225,7 @@ function createWebhookRequest(array $headers, ?string $payload = null): ServerRe
     $request = $factory->createServerRequest('POST', '/webhook');
 
     foreach ($headers as $name => $value) {
-        $request = $request->withHeader($name, $value);
+        $request = $request->withHeader($name, is_array($value) ? array_map(strval(...), $value) : (string) $value);
     }
 
     if ($payload !== null) {

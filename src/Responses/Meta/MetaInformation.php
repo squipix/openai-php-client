@@ -4,6 +4,7 @@ namespace OpenAI\Responses\Meta;
 
 use OpenAI\Contracts\MetaInformationContract;
 use OpenAI\Responses\Concerns\ArrayAccessible;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * @implements MetaInformationContract<array{x-request-id?: string, openai-model?: string, openai-organization?: string, openai-project?: string, openai-processing-ms?: int, openai-version?: string, x-ratelimit-limit-requests?: int, x-ratelimit-limit-tokens?: int, x-ratelimit-remaining-requests?: int, x-ratelimit-remaining-tokens?: int, x-ratelimit-reset-requests?: string, x-ratelimit-reset-tokens?: string, custom?: array<string, string>}>
@@ -22,6 +23,30 @@ final class MetaInformation implements MetaInformationContract
         public readonly ?MetaInformationRateLimit $tokenLimit,
         public readonly MetaInformationCustom $custom,
     ) {}
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    public static function headersFrom(ResponseInterface $response): array
+    {
+        $headers = [];
+
+        foreach ($response->getHeaders() as $name => $values) {
+            if (! is_string($name)) {
+                continue;
+            }
+
+            $normalized = [];
+
+            foreach ($values as $value) {
+                $normalized[] = (string) $value;
+            }
+
+            $headers[$name] = $normalized;
+        }
+
+        return $headers;
+    }
 
     /**
      * @param  array<string, array<int, string>>  $headers

@@ -198,7 +198,7 @@ final class RetrieveResponse implements ResponseContract, ResponseHasMetaInforma
             'instructions' => $this->instructions,
             'max_tool_calls' => $this->maxToolCalls,
             'max_output_tokens' => $this->maxOutputTokens,
-            'metadata' => $this->metadata ?? [],
+            'metadata' => $this->metadata,
             'model' => $this->model,
             'output' => array_map(
                 fn (OutputApplyPatchToolCall|OutputMessage|OutputComputerToolCall|OutputFileSearchToolCall|OutputWebSearchToolCall|OutputFunctionToolCall|OutputProgram|OutputProgramOutput|OutputReasoning|OutputMcpListTools|OutputMcpApprovalRequest|OutputMcpCall|OutputImageGenerationToolCall|OutputCodeInterpreterToolCall|OutputLocalShellCall|OutputCustomToolCall|OutputToolSearchCall|OutputToolSearchOutput|OutputCompaction $output): array => $output->toArray(),

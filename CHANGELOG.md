@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+# Unreleased
+
+### Changed
+
+ * Rename Composer package to `squipix/openai-php-client`.
+ * Upgrade dev dependency `guzzlehttp/guzzle` to `^8.2` and `guzzlehttp/psr7` to `^3.1`.
+ * Upgrade dev dependency `phpstan/phpstan` to `2.2.16`.
+
 # v0.21.0 (2026-09-17)
 ### Added
  * Add support for programmatic tool calling in Responses API. ([#790](https://github.com/openai-php/client/pull/790))

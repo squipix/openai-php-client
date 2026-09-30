@@ -87,11 +87,11 @@ readonly class WebhookSignatureVerifier
      */
     final public function sign(string $messageId, DateTimeInterface|int $timestamp, string $payload): string
     {
-        $timestamp = match (true) {
-            $timestamp instanceof DateTimeInterface => $timestamp->getTimestamp(),
-            is_int($timestamp) && $timestamp > 0 => $timestamp,
-            default => throw WebhookVerificationException::invalidTimestamp(),
-        };
+        if ($timestamp instanceof DateTimeInterface) {
+            $timestamp = $timestamp->getTimestamp();
+        } elseif ($timestamp <= 0) {
+            throw WebhookVerificationException::invalidTimestamp();
+        }
 
         $hash = hash_hmac(
             'sha256',

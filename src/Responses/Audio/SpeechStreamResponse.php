@@ -32,7 +32,7 @@ final class SpeechStreamResponse implements ResponseHasMetaInformationContract, 
 
     public function meta(): MetaInformation
     {
-        return MetaInformation::from($this->response->getHeaders());
+        return MetaInformation::from(MetaInformation::headersFrom($this->response));
     }
 
     public static function fake(?string $content = null, ?MetaInformation $meta = null): static

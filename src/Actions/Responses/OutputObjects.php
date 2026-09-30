@@ -77,7 +77,7 @@ final class OutputObjects
                 'tool_search_output' => OutputToolSearchOutput::from($item),
                 'compaction' => OutputCompaction::from($item),
                 'apply_patch_call' => OutputApplyPatchToolCall::from($item),
-                default => throw new \UnexpectedValueException('Uh oh! We do not recognize this type. Please submit a bug to openai-php/client on GitHub!'),
+                default => throw new \UnexpectedValueException('Uh oh! We do not recognize this type. Please submit a bug to squipix/openai-php-client on GitHub!'),
             },
             $outputItems,
         );
