@@ -18,6 +18,11 @@ final class MessagesTestResource implements MessagesContract
         return Messages::class;
     }
 
+    public function batches(): MessagesBatchesTestResource
+    {
+        return new MessagesBatchesTestResource($this->fake);
+    }
+
     public function create(array $parameters): CreateResponse
     {
         return $this->record(__FUNCTION__, func_get_args());

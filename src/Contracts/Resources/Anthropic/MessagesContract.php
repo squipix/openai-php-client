@@ -10,6 +10,13 @@ use OpenAI\Responses\StreamResponse;
 interface MessagesContract
 {
     /**
+     * Create and manage asynchronous batches of Messages requests.
+     *
+     * @see https://docs.claude.com/en/api/creating-message-batches
+     */
+    public function batches(): MessagesBatchesContract;
+
+    /**
      * Sends a structured list of input messages and returns the model's next message.
      * Parameters use the API's snake_case names (`max_tokens`, `cache_control`, ...).
      *

@@ -102,3 +102,51 @@ function anthropicMessagesErrorStream()
 {
     return fopen(__DIR__.'/Streams/AnthropicMessagesError.txt', 'r');
 }
+
+/**
+ * @return array<string, mixed>
+ */
+function anthropicBatch(): array
+{
+    return [
+        'id' => 'msgbatch_013Zva2CMHLNnXjNJJKqJ2EF',
+        'type' => 'message_batch',
+        'processing_status' => 'ended',
+        'request_counts' => [
+            'processing' => 0,
+            'succeeded' => 98,
+            'errored' => 1,
+            'canceled' => 1,
+            'expired' => 0,
+        ],
+        'ended_at' => '2026-10-08T19:37:24.100435Z',
+        'created_at' => '2026-10-08T18:37:24.100435Z',
+        'expires_at' => '2026-10-09T18:37:24.100435Z',
+        'archived_at' => null,
+        'cancel_initiated_at' => null,
+        'results_url' => 'https://api.anthropic.com/v1/messages/batches/msgbatch_013Zva2CMHLNnXjNJJKqJ2EF/results',
+    ];
+}
+
+/**
+ * @return array<string, mixed>
+ */
+function anthropicBatchList(): array
+{
+    return [
+        'data' => [anthropicBatch(), anthropicBatch()],
+        'has_more' => true,
+        'first_id' => 'msgbatch_013Zva2CMHLNnXjNJJKqJ2EF',
+        'last_id' => 'msgbatch_013Zva2CMHLNnXjNJJKqJ2EF',
+    ];
+}
+
+function anthropicBatchResults(): string
+{
+    $succeeded = ['custom_id' => 'my-second-request', 'result' => ['type' => 'succeeded', 'message' => [...anthropicMessage(), 'content' => [['type' => 'text', 'text' => 'Hi']]]]];
+
+    return json_encode($succeeded)."\n"
+        ."\n"
+        .json_encode(['custom_id' => 'my-first-request', 'result' => ['type' => 'errored', 'error' => ['type' => 'error', 'error' => ['type' => 'invalid_request_error', 'message' => 'Bad']]]])."\r\n"
+        .json_encode(['custom_id' => 'my-third-request', 'result' => ['type' => 'expired']]);
+}

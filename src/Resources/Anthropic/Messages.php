@@ -24,6 +24,16 @@ final class Messages implements MessagesContract
     use Transportable;
 
     /**
+     * Create and manage asynchronous batches of Messages requests.
+     *
+     * @see https://docs.claude.com/en/api/creating-message-batches
+     */
+    public function batches(): MessagesBatches
+    {
+        return new MessagesBatches($this->transporter);
+    }
+
+    /**
      * Sends a structured list of input messages and returns the model's next message.
      *
      * @see https://docs.claude.com/en/api/messages
