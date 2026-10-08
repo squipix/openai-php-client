@@ -259,6 +259,57 @@ it('should throw on unwrap with invalid json', function () {
         ->toThrow(UnexpectedValueException::class, 'Invalid JSON payload');
 });
 
+it('should verify the whole body when it was partly read', function () {
+    $secret = 'whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw';
+    $messageId = 'msg_2KWPBgLlAfxdpx2AI54pPJ85f4W';
+    $timestamp = time();
+    $payload = '{"foo":"bar"}';
+
+    $verifier = new WebhookSignatureVerifier($secret);
+    $signature = $verifier->sign($messageId, $timestamp, $payload);
+    $request = createWebhookRequest([
+        'webhook-id' => $messageId,
+        'webhook-timestamp' => $timestamp,
+        'webhook-signature' => $signature,
+    ], $payload);
+    $request->getBody()->read(5);
+
+    expect($verifier->unwrap($request))->toBe(['foo' => 'bar']);
+});
+
+it('should bail on malformed signature entries', function () {
+    $secret = 'whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw';
+    $messageId = 'msg_2KWPBgLlAfxdpx2AI54pPJ85f4W';
+    $timestamp = time();
+    $payload = '{"foo":"bar"}';
+
+    $verifier = new WebhookSignatureVerifier($secret);
+    $request = createWebhookRequest([
+        'webhook-id' => $messageId,
+        'webhook-timestamp' => $timestamp,
+        'webhook-signature' => 'garbage',
+    ], $payload);
+
+    expect(static fn () => $verifier->verify($request))
+        ->toThrow(WebhookVerificationException::class, 'No matching signature found');
+});
+
+it('should bail on non-numeric timestamp', function () {
+    $secret = 'whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw';
+    $messageId = 'msg_2KWPBgLlAfxdpx2AI54pPJ85f4W';
+    $payload = '{"foo":"bar"}';
+
+    $verifier = new WebhookSignatureVerifier($secret);
+    $request = createWebhookRequest([
+        'webhook-id' => $messageId,
+        'webhook-timestamp' => '17e8',
+        'webhook-signature' => 'v1,abc',
+    ], $payload);
+
+    expect(static fn () => $verifier->verify($request))
+        ->toThrow(WebhookVerificationException::class);
+});
+
 /**
  * @throws InvalidArgumentException
  */

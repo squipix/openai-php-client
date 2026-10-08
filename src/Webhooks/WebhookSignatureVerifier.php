@@ -33,15 +33,7 @@ readonly class WebhookSignatureVerifier
      */
     public function verify(RequestInterface $request): void
     {
-        $body = $request->getBody();
-        $payload = $body->getContents();
-        $body->rewind();
-
-        $this->verifySignature($payload, [
-            'webhook-id' => trim($request->getHeaderLine('webhook-id')) ?: null,
-            'webhook-timestamp' => trim($request->getHeaderLine('webhook-timestamp')) ?: null,
-            'webhook-signature' => trim($request->getHeaderLine('webhook-signature')) ?: null,
-        ]);
+        $this->verifySignature($this->payloadFrom($request), $this->headersFrom($request));
     }
 
     /**
@@ -53,11 +45,8 @@ readonly class WebhookSignatureVerifier
      */
     public function unwrap(RequestInterface $request): array
     {
-        $this->verify($request);
-
-        $body = $request->getBody();
-        $payload = $body->getContents();
-        $body->rewind();
+        $payload = $this->payloadFrom($request);
+        $this->verifySignature($payload, $this->headersFrom($request));
 
         $data = json_decode($payload, true);
 
@@ -91,13 +80,13 @@ readonly class WebhookSignatureVerifier
         $passedSignatures = explode(' ', $messageSignature);
 
         foreach ($passedSignatures as $versionedSignature) {
-            [$version, $passedSignature] = explode(',', $versionedSignature, 2);
+            $parts = explode(',', $versionedSignature, 2);
 
-            if (strcmp($version, 'v1') !== 0) {
+            if (count($parts) !== 2 || $parts[0] !== 'v1') {
                 continue;
             }
 
-            if (hash_equals($expectedSignature, $passedSignature)) {
+            if (hash_equals($expectedSignature, $parts[1])) {
                 return;
             }
         }
@@ -133,6 +122,10 @@ readonly class WebhookSignatureVerifier
      */
     protected function verifyTimestamp(string $timestampHeader): int
     {
+        if (! ctype_digit($timestampHeader)) {
+            throw WebhookVerificationException::invalidTimestamp();
+        }
+
         $now = time();
         $timestamp = (int) $timestampHeader;
 
@@ -145,5 +138,32 @@ readonly class WebhookSignatureVerifier
         }
 
         return $timestamp;
+    }
+
+    /**
+     * Reads the whole body from the start, leaving the stream rewound.
+     *
+     * @throws RuntimeException
+     */
+    private function payloadFrom(RequestInterface $request): string
+    {
+        $body = $request->getBody();
+        $body->rewind();
+        $payload = $body->getContents();
+        $body->rewind();
+
+        return $payload;
+    }
+
+    /**
+     * @return array{webhook-id: ?non-falsy-string, webhook-timestamp: ?non-falsy-string, webhook-signature: ?non-falsy-string}
+     */
+    private function headersFrom(RequestInterface $request): array
+    {
+        return [
+            'webhook-id' => trim($request->getHeaderLine('webhook-id')) ?: null,
+            'webhook-timestamp' => trim($request->getHeaderLine('webhook-timestamp')) ?: null,
+            'webhook-signature' => trim($request->getHeaderLine('webhook-signature')) ?: null,
+        ];
     }
 }
