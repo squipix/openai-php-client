@@ -9,6 +9,8 @@ use OpenAI\Resources\Concerns\Streamable;
 use OpenAI\Resources\Concerns\Transportable;
 use OpenAI\Responses\Anthropic\Messages\CountTokensResponse;
 use OpenAI\Responses\Anthropic\Messages\CreateResponse;
+use OpenAI\Responses\Anthropic\Messages\CreateStreamedResponse;
+use OpenAI\Responses\StreamResponse;
 use OpenAI\ValueObjects\Transporter\Payload;
 use OpenAI\ValueObjects\Transporter\Response;
 
@@ -38,6 +40,25 @@ final class Messages implements MessagesContract
         $response = $this->transporter->requestObject($payload);
 
         return CreateResponse::from($response->data(), $response->meta());
+    }
+
+    /**
+     * Sends a structured list of input messages and streams the model's next message as server-sent events.
+     *
+     * @see https://docs.claude.com/en/api/messages-streaming
+     *
+     * @param  array<string, mixed>  $parameters
+     * @return StreamResponse<CreateStreamedResponse>
+     */
+    public function createStreamed(array $parameters): StreamResponse
+    {
+        $parameters = $this->setStreamParameter($parameters);
+
+        $payload = Payload::create('messages', $parameters);
+
+        $response = $this->transporter->requestStream($payload);
+
+        return new StreamResponse(CreateStreamedResponse::class, $response);
     }
 
     /**

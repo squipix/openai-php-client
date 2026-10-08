@@ -6,6 +6,7 @@ use OpenAI\Contracts\Resources\Anthropic\MessagesContract;
 use OpenAI\Resources\Anthropic\Messages;
 use OpenAI\Responses\Anthropic\Messages\CountTokensResponse;
 use OpenAI\Responses\Anthropic\Messages\CreateResponse;
+use OpenAI\Responses\StreamResponse;
 use OpenAI\Testing\Resources\Concerns\Testable;
 
 final class MessagesTestResource implements MessagesContract
@@ -18,6 +19,11 @@ final class MessagesTestResource implements MessagesContract
     }
 
     public function create(array $parameters): CreateResponse
+    {
+        return $this->record(__FUNCTION__, func_get_args());
+    }
+
+    public function createStreamed(array $parameters): StreamResponse
     {
         return $this->record(__FUNCTION__, func_get_args());
     }

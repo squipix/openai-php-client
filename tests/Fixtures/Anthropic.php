@@ -86,3 +86,19 @@ function anthropicUsage(): array
         'service_tier' => 'standard',
     ];
 }
+
+/**
+ * @return resource
+ */
+function anthropicMessagesStream()
+{
+    return fopen(__DIR__.'/Streams/AnthropicMessagesCreate.txt', 'r');
+}
+
+/**
+ * @return resource
+ */
+function anthropicMessagesErrorStream()
+{
+    return fopen(__DIR__.'/Streams/AnthropicMessagesError.txt', 'r');
+}
