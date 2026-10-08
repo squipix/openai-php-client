@@ -91,7 +91,7 @@ final class OrganizationProjects implements OrganizationProjectsContract
      */
     public function archive(string $projectId): ProjectResponse
     {
-        $payload = Payload::create("organization/projects/{$projectId}/archive", []);
+        $payload = Payload::create('organization/projects/'.rawurlencode($projectId).'/archive', []);
 
         /** @var Response<ProjectResponseType> $response */
         $response = $this->transporter->requestObject($payload);

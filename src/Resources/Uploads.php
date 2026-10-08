@@ -44,7 +44,7 @@ final class Uploads implements UploadsContract
      */
     public function uploadPart(string $uploadId, array $parameters): UploadPartResponse
     {
-        $payload = Payload::upload("uploads/{$uploadId}/parts", $parameters);
+        $payload = Payload::upload('uploads/'.rawurlencode($uploadId).'/parts', $parameters);
 
         /** @var Response<UploadPartResponseType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -61,7 +61,7 @@ final class Uploads implements UploadsContract
      */
     public function complete(string $uploadId, array $parameters): UploadResponse
     {
-        $payload = Payload::create("uploads/{$uploadId}/complete", $parameters);
+        $payload = Payload::create('uploads/'.rawurlencode($uploadId).'/complete', $parameters);
 
         /** @var Response<UploadResponseType> $response */
         $response = $this->transporter->requestObject($payload);

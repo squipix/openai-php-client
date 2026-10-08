@@ -25,7 +25,7 @@ final class ConversationsItems implements ConversationsItemsContract
      */
     public function create(string $conversationId, array $parameters): ConversationItemList
     {
-        $payload = Payload::create("conversations/{$conversationId}/items", $parameters);
+        $payload = Payload::create('conversations/'.rawurlencode($conversationId).'/items', $parameters);
 
         /** @var Response<ConversationItemListType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -38,7 +38,7 @@ final class ConversationsItems implements ConversationsItemsContract
      */
     public function list(string $conversationId, array $parameters = []): ConversationItemList
     {
-        $payload = Payload::list("conversations/{$conversationId}/items", $parameters);
+        $payload = Payload::list('conversations/'.rawurlencode($conversationId).'/items', $parameters);
 
         /** @var Response<ConversationItemListType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -52,7 +52,7 @@ final class ConversationsItems implements ConversationsItemsContract
     public function retrieve(string $conversationId, string $itemId, array $parameters = []): ConversationItem
     {
         // include query params if provided
-        $base = "conversations/{$conversationId}/items";
+        $base = 'conversations/'.rawurlencode($conversationId).'/items';
         $payload = Payload::retrieve($base, $itemId, '', $parameters);
 
         /** @var Response<ConversationItemType> $response */
@@ -66,7 +66,7 @@ final class ConversationsItems implements ConversationsItemsContract
      */
     public function delete(string $conversationId, string $itemId): ConversationResponse
     {
-        $payload = Payload::delete("conversations/{$conversationId}/items", $itemId);
+        $payload = Payload::delete('conversations/'.rawurlencode($conversationId).'/items', $itemId);
 
         /** @var Response<ConversationType> $response */
         $response = $this->transporter->requestObject($payload);

@@ -48,7 +48,7 @@ final class ResourceUri implements StringableContract
      */
     public static function retrieve(string $resource, string $id, string $suffix): self
     {
-        return new self("{$resource}/{$id}{$suffix}");
+        return new self("{$resource}/".self::encode($id).$suffix);
     }
 
     /**
@@ -56,7 +56,7 @@ final class ResourceUri implements StringableContract
      */
     public static function modify(string $resource, string $id): self
     {
-        return new self("{$resource}/{$id}");
+        return new self("{$resource}/".self::encode($id));
     }
 
     /**
@@ -64,7 +64,7 @@ final class ResourceUri implements StringableContract
      */
     public static function retrieveContent(string $resource, string $id): self
     {
-        return new self("{$resource}/{$id}/content");
+        return new self("{$resource}/".self::encode($id).'/content');
     }
 
     /**
@@ -72,7 +72,7 @@ final class ResourceUri implements StringableContract
      */
     public static function cancel(string $resource, string $id): self
     {
-        return new self("{$resource}/{$id}/cancel");
+        return new self("{$resource}/".self::encode($id).'/cancel');
     }
 
     /**
@@ -80,7 +80,7 @@ final class ResourceUri implements StringableContract
      */
     public static function delete(string $resource, string $id): self
     {
-        return new self("{$resource}/{$id}");
+        return new self("{$resource}/".self::encode($id));
     }
 
     /**
@@ -89,5 +89,13 @@ final class ResourceUri implements StringableContract
     public function toString(): string
     {
         return $this->uri;
+    }
+
+    /**
+     * Encodes an id as a single path segment, keeping ":" readable for fine-tuned model ids.
+     */
+    private static function encode(string $id): string
+    {
+        return str_replace('%3A', ':', rawurlencode($id));
     }
 }

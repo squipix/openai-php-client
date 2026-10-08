@@ -128,7 +128,7 @@ final class VectorStores implements VectorStoresContract
      */
     public function search(string $vectorStoreId, array $parameters = []): VectorStoreSearchResponse
     {
-        $payload = Payload::create("vector_stores/{$vectorStoreId}/search", $parameters);
+        $payload = Payload::create('vector_stores/'.rawurlencode($vectorStoreId).'/search', $parameters);
 
         /** @var Response<array{object: string, search_query: string|array<mixed>, data: array<int, array{file_id: string, filename: string, score: float, attributes: array<string, mixed>, content: array<int, array{type: string, text: string}>}>, has_more: bool, next_page: ?string}> $response */
         $response = $this->transporter->requestObject($payload);

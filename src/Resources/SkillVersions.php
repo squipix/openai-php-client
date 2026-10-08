@@ -29,7 +29,7 @@ final class SkillVersions implements SkillVersionsContract
      */
     public function create(string $skillId, array $parameters): SkillVersionResponse
     {
-        $payload = Payload::upload("skills/$skillId/versions", $parameters);
+        $payload = Payload::upload('skills/'.rawurlencode($skillId).'/versions', $parameters);
 
         /** @var Response<SkillVersionType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -46,7 +46,7 @@ final class SkillVersions implements SkillVersionsContract
      */
     public function list(string $skillId, array $parameters = []): SkillVersionListResponse
     {
-        $payload = Payload::list("skills/$skillId/versions", $parameters);
+        $payload = Payload::list('skills/'.rawurlencode($skillId).'/versions', $parameters);
 
         /** @var Response<SkillVersionListType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -61,7 +61,7 @@ final class SkillVersions implements SkillVersionsContract
      */
     public function retrieve(string $skillId, string $version): SkillVersionResponse
     {
-        $payload = Payload::retrieve("skills/$skillId/versions", $version);
+        $payload = Payload::retrieve('skills/'.rawurlencode($skillId).'/versions', $version);
 
         /** @var Response<SkillVersionType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -76,7 +76,7 @@ final class SkillVersions implements SkillVersionsContract
      */
     public function content(string $skillId, string $version): string
     {
-        $payload = Payload::retrieveContent("skills/$skillId/versions", $version);
+        $payload = Payload::retrieveContent('skills/'.rawurlencode($skillId).'/versions', $version);
 
         return $this->transporter->requestContent($payload);
     }
@@ -88,7 +88,7 @@ final class SkillVersions implements SkillVersionsContract
      */
     public function delete(string $skillId, string $version): SkillVersionDeleteResponse
     {
-        $payload = Payload::delete("skills/$skillId/versions", $version);
+        $payload = Payload::delete('skills/'.rawurlencode($skillId).'/versions', $version);
 
         /** @var Response<SkillVersionDeleteType> $response */
         $response = $this->transporter->requestObject($payload);

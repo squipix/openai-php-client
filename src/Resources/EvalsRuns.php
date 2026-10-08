@@ -29,7 +29,7 @@ final class EvalsRuns implements EvalsRunsContract
      */
     public function create(string $evalId, array $parameters): EvalRunResponse
     {
-        $payload = Payload::create("evals/{$evalId}/runs", $parameters);
+        $payload = Payload::create('evals/'.rawurlencode($evalId).'/runs', $parameters);
 
         /** @var Response<EvalRunResponseType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -44,7 +44,7 @@ final class EvalsRuns implements EvalsRunsContract
      */
     public function retrieve(string $evalId, string $runId): EvalRunResponse
     {
-        $payload = Payload::retrieve("evals/{$evalId}/runs", $runId);
+        $payload = Payload::retrieve('evals/'.rawurlencode($evalId).'/runs', $runId);
 
         /** @var Response<EvalRunResponseType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -61,7 +61,7 @@ final class EvalsRuns implements EvalsRunsContract
      */
     public function list(string $evalId, array $parameters = []): ListEvalRunsResponse
     {
-        $payload = Payload::list("evals/{$evalId}/runs", $parameters);
+        $payload = Payload::list('evals/'.rawurlencode($evalId).'/runs', $parameters);
 
         /** @var Response<ListEvalRunsResponseType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -76,7 +76,7 @@ final class EvalsRuns implements EvalsRunsContract
      */
     public function cancel(string $evalId, string $runId): EvalRunResponse
     {
-        $payload = Payload::create("evals/{$evalId}/runs/{$runId}/cancel", []);
+        $payload = Payload::create('evals/'.rawurlencode($evalId).'/runs/'.rawurlencode($runId).'/cancel', []);
 
         /** @var Response<EvalRunResponseType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -91,7 +91,7 @@ final class EvalsRuns implements EvalsRunsContract
      */
     public function delete(string $evalId, string $runId): DeleteEvalRunResponse
     {
-        $payload = Payload::delete("evals/{$evalId}/runs", $runId);
+        $payload = Payload::delete('evals/'.rawurlencode($evalId).'/runs', $runId);
 
         /** @var Response<DeleteEvalRunResponseType> $response */
         $response = $this->transporter->requestObject($payload);

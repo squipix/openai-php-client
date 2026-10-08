@@ -27,7 +27,7 @@ final class FineTuningCheckpoints implements FineTuningCheckpointsContract
      */
     public function createPermission(string $checkpoint, array $parameters): ListPermissionsResponse
     {
-        $payload = Payload::create("fine_tuning/checkpoints/{$checkpoint}/permissions", $parameters);
+        $payload = Payload::create('fine_tuning/checkpoints/'.rawurlencode($checkpoint).'/permissions', $parameters);
 
         /** @var Response<ListPermissionsResponseType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -42,7 +42,7 @@ final class FineTuningCheckpoints implements FineTuningCheckpointsContract
      */
     public function deletePermission(string $checkpoint, string $permission): DeletePermissionResponse
     {
-        $payload = Payload::delete("fine_tuning/checkpoints/{$checkpoint}/permissions", $permission);
+        $payload = Payload::delete('fine_tuning/checkpoints/'.rawurlencode($checkpoint).'/permissions', $permission);
 
         /** @var Response<DeletePermissionResponseType> $response */
         $response = $this->transporter->requestObject($payload);

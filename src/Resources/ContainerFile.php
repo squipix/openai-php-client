@@ -33,7 +33,7 @@ final class ContainerFile implements ContainerFileContract
             throw new \InvalidArgumentException('You cannot set both "file_id" and "file" parameters.');
         }
 
-        $url = "containers/$containerId/files";
+        $url = 'containers/'.rawurlencode($containerId).'/files';
         $payload = isset($parameters['file'])
             ? Payload::upload($url, $parameters)
             : Payload::create($url, $parameters);
@@ -53,7 +53,7 @@ final class ContainerFile implements ContainerFileContract
      */
     public function list(string $containerId, array $parameters = []): ContainerFileListResponse
     {
-        $payload = Payload::list("containers/$containerId/files", $parameters);
+        $payload = Payload::list('containers/'.rawurlencode($containerId).'/files', $parameters);
 
         /** @var Response<ContainerFileListType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -68,7 +68,7 @@ final class ContainerFile implements ContainerFileContract
      */
     public function retrieve(string $containerId, string $fileId): ContainerFileResponse
     {
-        $payload = Payload::retrieve("containers/$containerId/files", $fileId);
+        $payload = Payload::retrieve('containers/'.rawurlencode($containerId).'/files', $fileId);
 
         /** @var Response<ContainerFileType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -83,7 +83,7 @@ final class ContainerFile implements ContainerFileContract
      */
     public function content(string $containerId, string $fileId): string
     {
-        $payload = Payload::retrieveContent("containers/$containerId/files", $fileId);
+        $payload = Payload::retrieveContent('containers/'.rawurlencode($containerId).'/files', $fileId);
 
         return $this->transporter->requestContent($payload);
     }
@@ -95,7 +95,7 @@ final class ContainerFile implements ContainerFileContract
      */
     public function delete(string $containerId, string $fileId): ContainerFileDeleteResponse
     {
-        $payload = Payload::delete("containers/$containerId/files", $fileId);
+        $payload = Payload::delete('containers/'.rawurlencode($containerId).'/files', $fileId);
 
         /** @var Response<ContainerFileDeleteType> $response */
         $response = $this->transporter->requestObject($payload);

@@ -42,7 +42,7 @@ final class RealtimeCalls implements RealtimeCallsContract
      */
     public function accept(string $callId, array $parameters = []): CallResponse
     {
-        $payload = Payload::create("realtime/calls/{$callId}/accept", $parameters);
+        $payload = Payload::create('realtime/calls/'.rawurlencode($callId).'/accept', $parameters);
 
         /** @var Response<CallResponseType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -57,7 +57,7 @@ final class RealtimeCalls implements RealtimeCallsContract
      */
     public function hangup(string $callId): CallResponse
     {
-        $payload = Payload::create("realtime/calls/{$callId}/hangup", []);
+        $payload = Payload::create('realtime/calls/'.rawurlencode($callId).'/hangup', []);
 
         /** @var Response<CallResponseType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -74,7 +74,7 @@ final class RealtimeCalls implements RealtimeCallsContract
      */
     public function refer(string $callId, array $parameters): CallResponse
     {
-        $payload = Payload::create("realtime/calls/{$callId}/refer", $parameters);
+        $payload = Payload::create('realtime/calls/'.rawurlencode($callId).'/refer', $parameters);
 
         /** @var Response<CallResponseType> $response */
         $response = $this->transporter->requestObject($payload);
@@ -89,7 +89,7 @@ final class RealtimeCalls implements RealtimeCallsContract
      */
     public function reject(string $callId): CallResponse
     {
-        $payload = Payload::create("realtime/calls/{$callId}/reject", []);
+        $payload = Payload::create('realtime/calls/'.rawurlencode($callId).'/reject', []);
 
         /** @var Response<CallResponseType> $response */
         $response = $this->transporter->requestObject($payload);

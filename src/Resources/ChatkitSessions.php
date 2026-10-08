@@ -42,7 +42,7 @@ final class ChatkitSessions implements ChatkitSessionsContract
      */
     public function cancel(string $sessionId): SessionResponse
     {
-        $payload = Payload::create("chatkit/sessions/{$sessionId}/cancel", []);
+        $payload = Payload::create('chatkit/sessions/'.rawurlencode($sessionId).'/cancel', []);
 
         /** @var Response<ChatkitSessionResponseType> $response */
         $response = $this->transporter
