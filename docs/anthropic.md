@@ -1,229 +1,321 @@
 # Anthropic (Claude) API
 
-This package bundles Anthropic's official PHP SDK, [`anthropic-ai/sdk`](https://github.com/anthropics/anthropic-sdk-php), and exposes it through a single entry point. Every Anthropic API feature (messages, streaming, tool use, batches, files, skills, models, beta endpoints, managed agents, Bedrock / Vertex / Foundry) comes straight from the official SDK and stays in step with the API as Anthropic ships it.
+The package includes a native Anthropic client built on the same transporter, response objects and testing fakes as the OpenAI client. Parameters are plain arrays with the API's own snake_case names, so the [Claude API reference](https://docs.claude.com/en/api/messages) applies one to one.
 
-> The SDK's own documentation is the reference for every method and parameter: <https://platform.claude.com/docs/en/api/sdks/php>
+Supported: **Messages** (create, stream, count tokens), **Message Batches**, **Models**, **Files** and **Skills** (with versions), with first-class **prompt-cache** usage.
 
 ---
 
 ## Creating a Client
 
 ```php
-// Reads ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN / `ant auth login` profiles when no key is given.
-$client = OpenAI::anthropic();
-
-// Or pass the key, a custom base URL and your own PSR-18 HTTP client explicitly.
-$client = OpenAI::anthropic(
-    apiKey: getenv('ANTHROPIC_API_KEY'),
-    baseUrl: 'https://my-proxy.example.com',
-    httpClient: new GuzzleHttp\Client(['timeout' => 120]),
-);
+$client = OpenAI::anthropic(getenv('ANTHROPIC_API_KEY'));
 ```
 
-`OpenAI::anthropic()` returns a plain `Anthropic\Client`. For anything it doesn't expose (retries, timeouts, middleware, a streaming-capable HTTP client), construct the SDK client directly:
+Or configure it through the factory:
 
 ```php
-use Anthropic\Client;
-use Anthropic\RequestOptions;
-
-$client = new Client(
-    apiKey: getenv('ANTHROPIC_API_KEY'),
-    requestOptions: RequestOptions::with(maxRetries: 0, streamingTransporter: $myStreamingClient),
-);
+$client = OpenAI::anthropicFactory()
+    ->withApiKey(getenv('ANTHROPIC_API_KEY'))
+    ->withBaseUri('anthropic.example.com/v1')           // default: api.anthropic.com/v1
+    ->withVersion('2023-06-01')                         // `anthropic-version` header (default)
+    ->withHttpHeader('anthropic-beta', 'some-beta-2026-01-01') // opt into beta features
+    ->withHttpClient(new \GuzzleHttp\Client(['timeout' => 600]))
+    ->withStreamHandler(fn (RequestInterface $request): ResponseInterface => $httpClient->send($request, ['stream' => true]))
+    ->make();
 ```
 
-> **Streaming and custom HTTP clients:** `httpClient` is only used for non-streaming requests. Streaming uses the SDK's discovered client, because a PSR-18 `sendRequest()` call such as Guzzle's buffers the whole response. To stream through your own client, pass a streaming-capable one as `streamingTransporter`.
+As with the OpenAI client, Guzzle and Symfony HTTP clients stream without a custom stream handler.
 
 ---
 
 ## Messages
 
 ```php
-$message = $client->messages->create(
-    model: 'claude-opus-5-5',
-    maxTokens: 16000,
-    messages: [
+$response = $client->messages()->create([
+    'model' => 'claude-opus-5-5',
+    'max_tokens' => 16000,
+    'messages' => [
         ['role' => 'user', 'content' => 'What is the capital of France?'],
     ],
-);
+]);
 
-foreach ($message->content as $block) {
-    if ($block->type === 'text') {
-        echo $block->text;
-    }
+$response->id;          // 'msg_01XFDUDYJgAACzvnptvVoYEL'
+$response->stopReason;  // 'end_turn'
+$response->text();      // all text blocks, concatenated
+
+foreach ($response->content as $block) {
+    match ($block->type) {
+        'text' => $block->text,                       // TextBlock (with ->citations)
+        'thinking' => $block->thinking,               // ThinkingBlock (with ->signature)
+        'tool_use', 'server_tool_use' => $block->input, // ToolUseBlock (->id, ->name, ->input)
+        default => $block->attributes,                // GenericBlock: any other block type, kept raw
+    };
 }
+
+$response->toArray(); // ['id' => 'msg_...', 'type' => 'message', ...]
 ```
 
-Named arguments are camelCase (`maxTokens`, `stopReason`). The SDK maps them to the API's snake_case on the wire. Always check a block's `type` before reading `->text`: thinking and tool-use blocks can come first.
+Content blocks are typed as `TextBlock`, `ThinkingBlock`, `RedactedThinkingBlock` and `ToolUseBlock`, all under `OpenAI\Responses\Anthropic\Messages\Content`. Every other block type, such as server-tool results or `container_upload`, becomes a `GenericBlock`, so new block types never break parsing. When you continue a conversation, send the assistant's content back unchanged, using `$block->toArray()`.
+
+When a request is refused, `stopReason` is `'refusal'` and `$response->stopDetails` holds the category.
 
 ### Streaming
 
 ```php
-use Anthropic\Messages\RawContentBlockDeltaEvent;
-use Anthropic\Messages\TextDelta;
-
-$stream = $client->messages->createStream(
-    model: 'claude-opus-5-5',
-    maxTokens: 64000,
-    messages: [['role' => 'user', 'content' => 'Write a haiku']],
-);
+$stream = $client->messages()->createStreamed([
+    'model' => 'claude-opus-5-5',
+    'max_tokens' => 64000,
+    'messages' => [['role' => 'user', 'content' => 'Write a haiku']],
+]);
 
 foreach ($stream as $event) {
-    if ($event instanceof RawContentBlockDeltaEvent && $event->delta instanceof TextDelta) {
-        echo $event->delta->text;
+    if ($event->event === 'content_block_delta' && $event->response->delta->type === 'text_delta') {
+        echo $event->response->delta->text;
     }
 }
 ```
 
+| `$event->event` | `$event->response` |
+|---|---|
+| `message_start` | `MessageStart` (`->message` is a `CreateResponse` with initial usage) |
+| `content_block_start` | `ContentBlockStart` (`->index`, `->contentBlock`) |
+| `content_block_delta` | `ContentBlockDelta` (`->delta->text` / `->partialJson` / `->thinking` / `->signature` / `->citation`) |
+| `content_block_stop` | `ContentBlockStop` |
+| `message_delta` | `MessageDelta` (`->stopReason`, cumulative `->usage`) |
+| `message_stop` | `MessageStop` |
+
+`ping` events are skipped. An `error` event, such as `overloaded_error`, throws `OpenAI\Exceptions\ErrorException`. For tool calls, concatenate each `partialJson` and `json_decode` the result after `content_block_stop`.
+
 ### Adaptive Thinking
 
 ```php
-$message = $client->messages->create(
-    model: 'claude-opus-5-5',
-    maxTokens: 16000,
-    thinking: ['type' => 'adaptive', 'display' => 'summarized'],
-    messages: [['role' => 'user', 'content' => 'Solve: 27 * 453']],
-);
+$response = $client->messages()->create([
+    'model' => 'claude-opus-5-5',
+    'max_tokens' => 16000,
+    'thinking' => ['type' => 'adaptive', 'display' => 'summarized'],
+    'output_config' => ['effort' => 'high'],
+    'messages' => [['role' => 'user', 'content' => 'Solve: 27 * 453']],
+]);
 ```
 
-Thinking blocks come before the text block. If you continue the conversation, send them back unchanged.
-
-### Prompt Caching
+### Tool Use
 
 ```php
-$message = $client->messages->create(
-    model: 'claude-opus-5-5',
-    maxTokens: 16000,
-    system: [
-        ['type' => 'text', 'text' => $longSystemPrompt, 'cacheControl' => ['type' => 'ephemeral']],
-    ],
-    messages: [['role' => 'user', 'content' => 'Summarize the key points']],
-);
-
-echo $message->usage->cacheReadInputTokens;
-```
-
-### Tool Runner (beta)
-
-```php
-use Anthropic\Lib\Tools\BetaRunnableTool;
-
-$weather = new BetaRunnableTool(
-    definition: [
+$response = $client->messages()->create([
+    'model' => 'claude-opus-5-5',
+    'max_tokens' => 16000,
+    'tools' => [[
         'name' => 'get_weather',
         'description' => 'Get the current weather for a location.',
-        'inputSchema' => [
+        'input_schema' => [
             'type' => 'object',
             'properties' => ['location' => ['type' => 'string']],
             'required' => ['location'],
         ],
-    ],
-    run: fn (array $input): string => "The weather in {$input['location']} is sunny.",
-);
+    ]],
+    'messages' => $messages,
+]);
 
-$runner = $client->beta->messages->toolRunner(
-    model: 'claude-opus-5-5',
-    maxTokens: 16000,
-    messages: [['role' => 'user', 'content' => 'What is the weather in Paris?']],
-    tools: [$weather],
-);
+if ($response->stopReason === 'tool_use') {
+    $messages[] = ['role' => 'assistant', 'content' => $response->toArray()['content']];
 
-foreach ($runner as $message) {
-    // each assistant turn, until the model stops calling tools
+    $results = [];
+    foreach ($response->content as $block) {
+        if ($block->type === 'tool_use') {
+            $results[] = ['type' => 'tool_result', 'tool_use_id' => $block->id, 'content' => getWeather($block->input['location'])];
+        }
+    }
+
+    $messages[] = ['role' => 'user', 'content' => $results]; // all results in one message
 }
 ```
+
+### Counting Tokens
+
+```php
+$count = $client->messages()->countTokens([
+    'model' => 'claude-opus-5-5',
+    'messages' => [['role' => 'user', 'content' => 'Hello']],
+]);
+
+$count->inputTokens; // 14
+```
+
+---
+
+## Prompt Caching
+
+Add `cache_control` wherever the API accepts it: at the top level (automatic placement) or on `tools`, `system` and message content blocks. The client sends it as-is.
+
+```php
+$response = $client->messages()->create([
+    'model' => 'claude-opus-5-5',
+    'max_tokens' => 16000,
+    'system' => [
+        ['type' => 'text', 'text' => $longSystemPrompt, 'cache_control' => ['type' => 'ephemeral', 'ttl' => '1h']],
+    ],
+    'messages' => [['role' => 'user', 'content' => 'Summarize the key points']],
+]);
+
+$usage = $response->usage;
+
+$usage->inputTokens;              // uncached input after the last breakpoint
+$usage->cacheCreationInputTokens; // tokens written to the cache
+$usage->cacheReadInputTokens;     // tokens read from the cache
+$usage->cacheCreation?->ephemeral5mInputTokens; // cache writes per TTL
+$usage->cacheCreation?->ephemeral1hInputTokens;
+$usage->totalInputTokens();       // input + cache writes + cache reads
+```
+
+Streams report the same `Usage` on `message_start` and `message_delta`, and batch results do too. If `cacheReadInputTokens` stays at `0` across repeated requests, something in the cached prefix is changing between calls, for example a timestamp in the system prompt.
 
 ---
 
 ## Message Batches
 
 ```php
-$batch = $client->messages->batches->create(requests: [
-    ['customID' => 'req-1', 'params' => ['model' => 'claude-opus-5-5', 'maxTokens' => 1024, 'messages' => [['role' => 'user', 'content' => 'Hi']]]],
+$batch = $client->messages()->batches()->create([
+    'requests' => [
+        ['custom_id' => 'req-1', 'params' => ['model' => 'claude-opus-5-5', 'max_tokens' => 1024, 'messages' => [['role' => 'user', 'content' => 'Hi']]]],
+    ],
 ]);
 
-// Poll until $client->messages->batches->retrieve($batch->id)->processingStatus === 'ended', then:
-foreach ($client->messages->batches->resultsStream($batch->id) as $result) {
-    if ($result->result->type === 'succeeded') {
-        echo $result->customID, ': ', $result->result->message->content[0]->text ?? '', PHP_EOL;
+// Poll until processing has ended:
+$batch = $client->messages()->batches()->retrieve($batch->id);
+$batch->processingStatus;          // 'in_progress' | 'canceling' | 'ended'
+$batch->requestCounts->succeeded;
+
+foreach ($client->messages()->batches()->results($batch->id) as $result) {
+    if ($result->type === 'succeeded') {
+        echo $result->customId, ': ', $result->message->text(), PHP_EOL;
     }
 }
+
+$client->messages()->batches()->list(['limit' => 20]);
+$client->messages()->batches()->cancel($batch->id);
+$client->messages()->batches()->delete($batch->id);
 ```
 
-Results can arrive in any order, so match them by `customID`, not by position.
+`results()` streams the JSON Lines results file one result at a time. Results arrive in any order, so match them by `customId`.
+
+---
 
 ## Files
 
 ```php
-use Anthropic\Core\FileParam;
-
-$file = $client->files->upload(file: FileParam::fromResource(fopen('report.pdf', 'r')));
+$file = $client->files()->upload(['file' => fopen('report.pdf', 'r')]);
 
 // Reference it in a message:
-// ['type' => 'document', 'source' => ['type' => 'file', 'fileID' => $file->id]]
+// ['type' => 'document', 'source' => ['type' => 'file', 'file_id' => $file->id]]
+
+$client->files()->list(['limit' => 20]);
+$client->files()->retrieve($file->id);   // metadata: filename, mimeType, sizeBytes, downloadable
+$client->files()->download($file->id);   // string contents (files created by skills / code execution)
+$client->files()->delete($file->id);
+```
+
+## Skills
+
+```php
+$skill = $client->skills()->create([
+    'display_name' => 'Excel Report Builder',
+    'files' => [fopen('excel-report/SKILL.md', 'r'), fopen('excel-report/build.py', 'r')],
+]);
+
+$client->skills()->list(['source' => 'custom']);
+$client->skills()->retrieve($skill->id);
+
+$client->skills()->versions()->create($skill->id, ['files' => [...]]);
+$client->skills()->versions()->list($skill->id);
+$client->skills()->versions()->retrieve($skill->id, $versionId);
+$client->skills()->versions()->delete($skill->id, $versionId);
+$client->skills()->delete($skill->id);
 ```
 
 ## Models
 
 ```php
-foreach ($client->models->list()->pagingEachItem() as $model) { // auto-paginates
-    echo $model->id, PHP_EOL;
+$models = $client->models()->list(['limit' => 20]);
+
+foreach ($models->data as $model) {
+    echo $model->id, ' ', $model->maxInputTokens, PHP_EOL;
 }
 
-$model = $client->models->retrieve('claude-opus-5-5');
+$client->models()->retrieve('claude-opus-5-5')->displayName; // 'Claude Opus 5.5'
 ```
 
 ---
 
-## Cloud Providers
+## Pagination
 
-| Provider | Client | Extra package |
-|---|---|---|
-| Amazon Bedrock | `new Anthropic\Bedrock\MantleClient(awsRegion: 'us-east-1')`. Model IDs take an `anthropic.` prefix. | `aws/aws-sdk-php` |
-| Google Vertex AI | `Anthropic\Vertex\Client::fromEnvironment(location: 'us-east5', projectId: 'my-project')` | `google/auth` |
-| Microsoft Foundry | `Anthropic\Foundry\Client::withCredentials(apiKey: ..., baseUrl: 'https://<resource>.services.ai.azure.com/anthropic/v1')` | none |
+List endpoints return `data`, `hasMore`, `firstId` and `lastId`. Pass `after_id` / `before_id` to page through results:
 
----
+```php
+$page = $client->messages()->batches()->list(['limit' => 100]);
+
+while ($page->hasMore) {
+    $page = $client->messages()->batches()->list(['limit' => 100, 'after_id' => $page->lastId]);
+}
+```
+
+## Meta Information
+
+```php
+$response->meta()->requestId;   // Anthropic `request-id` header
+$response->meta()->custom->toArray(); // every other header, e.g. anthropic-ratelimit-*
+```
 
 ## Error Handling
 
+Errors use the same exceptions as the OpenAI client:
+
 ```php
-use Anthropic\Core\Exceptions\APIStatusException;
-use Anthropic\Core\Exceptions\RateLimitException;
+use OpenAI\Exceptions\ErrorException;
+use OpenAI\Exceptions\RateLimitException;
+use OpenAI\Exceptions\ServerException;
 
 try {
-    $client->messages->create(/* ... */);
-} catch (RateLimitException $e) {
-    // retry later; the SDK has already retried twice by default
-} catch (APIStatusException $e) {
-    echo $e->type?->value; // e.g. "invalid_request_error", "overloaded_error"
+    $client->messages()->create([...]);
+} catch (RateLimitException $e) {        // 429
+    // back off and retry
+} catch (ServerException $e) {           // 5xx, including 529 overloaded
+    // retry later
+} catch (ErrorException $e) {            // 4xx
+    $e->getErrorType();    // e.g. 'invalid_request_error'
+    $e->getErrorMessage();
 }
 ```
 
-Anthropic exceptions are separate from this package's `OpenAI\Exceptions\*`.
+The client does not retry automatically.
 
 ---
 
 ## Testing
 
-Pass a mocked PSR-18 client, such as Guzzle's `MockHandler`, so no real requests are sent:
+`OpenAI\Testing\AnthropicClientFake` works like the OpenAI `ClientFake`:
 
 ```php
-use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Response;
+use OpenAI\Resources\Anthropic\Messages;
+use OpenAI\Responses\Anthropic\Messages\CreateResponse;
+use OpenAI\Responses\Anthropic\Messages\CreateStreamedResponse;
+use OpenAI\Testing\AnthropicClientFake;
 
-$http = new GuzzleClient(['handler' => HandlerStack::create(new MockHandler([
-    new Response(200, ['Content-Type' => 'application/json'], json_encode([
-        'id' => 'msg_1', 'type' => 'message', 'role' => 'assistant', 'model' => 'claude-opus-5-5',
-        'content' => [['type' => 'text', 'text' => 'Hello!']],
-        'stop_reason' => 'end_turn', 'stop_sequence' => null,
-        'usage' => ['input_tokens' => 1, 'output_tokens' => 1],
-    ])),
-]))]);
+$client = new AnthropicClientFake([
+    CreateResponse::fake([
+        'content' => [['type' => 'text', 'text' => 'Paris']],
+        'usage' => ['cache_read_input_tokens' => 4096],
+    ]),
+    CreateStreamedResponse::fake(), // or ::fake(fopen('my-stream.txt', 'r'))
+]);
 
-$client = OpenAI::anthropic('test-key', httpClient: $http);
+$response = $client->messages()->create(['model' => 'claude-opus-5-5', 'max_tokens' => 1024, 'messages' => []]);
+
+$response->text(); // 'Paris'
+
+$client->assertSent(Messages::class, function (string $method, array $parameters): bool {
+    return $method === 'create' && $parameters['model'] === 'claude-opus-5-5';
+});
 ```
 
-`OpenAI\Testing\ClientFake` covers the OpenAI client only.
+Every Anthropic response class has a `fake()` method. Batch results take a JSON Lines string: `BatchResultsResponse::fake($jsonLines)`.

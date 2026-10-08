@@ -62,4 +62,4 @@ This document details the internal design and key components of `squipix/openai-
 - `src/Transporters`: Transport layer converting high-level payloads to PSR-7 requests and dispatching them.
 - `src/Webhooks`: Cryptographic signature verification for inbound OpenAI webhooks.
 
-Anthropic (Claude) calls bypass this stack entirely: `OpenAI::anthropic()` returns the official `anthropic-ai/sdk` client, which brings its own resources, transport, retries and exceptions. See [anthropic.md](anthropic.md).
+Anthropic (Claude) support uses the same stack. `OpenAI::anthropic()` / `AnthropicFactory` build an `AnthropicClient` on the same `HttpTransporter`, sending `x-api-key` and `anthropic-version` headers. Each layer keeps its Anthropic classes in an `Anthropic` sub-namespace: `src/Resources/Anthropic`, `src/Responses/Anthropic`, `src/Contracts/Resources/Anthropic`, `src/Testing/Resources/Anthropic`. See [anthropic.md](anthropic.md).

@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-use Anthropic\Client as AnthropicClient;
-use Anthropic\RequestOptions;
+use OpenAI\AnthropicClient;
+use OpenAI\AnthropicFactory;
 use OpenAI\Client;
 use OpenAI\Factory;
-use Psr\Http\Client\ClientInterface;
 
 final class OpenAI
 {
@@ -31,15 +30,20 @@ final class OpenAI
     }
 
     /**
-     * Creates an official Anthropic SDK client (anthropic-ai/sdk).
-     * Falls back to ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN / ant auth profiles when no key is given.
+     * Creates a new Anthropic (Claude) Client with the given API key.
      */
-    public static function anthropic(?string $apiKey = null, ?string $baseUrl = null, ?ClientInterface $httpClient = null): AnthropicClient
+    public static function anthropic(string $apiKey): AnthropicClient
     {
-        return new AnthropicClient(
-            apiKey: $apiKey,
-            baseUrl: $baseUrl,
-            requestOptions: $httpClient instanceof ClientInterface ? RequestOptions::with(transporter: $httpClient) : null,
-        );
+        return self::anthropicFactory()
+            ->withApiKey($apiKey)
+            ->make();
+    }
+
+    /**
+     * Creates a new factory instance to configure a custom Anthropic (Claude) Client.
+     */
+    public static function anthropicFactory(): AnthropicFactory
+    {
+        return new AnthropicFactory;
     }
 }

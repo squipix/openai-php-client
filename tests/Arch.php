@@ -57,8 +57,6 @@ test('client')->expect('OpenAI\Client')->toOnlyUse([
 ]);
 
 test('openai')->expect('OpenAI')->toOnlyUse([
-    'Anthropic\Client',
-    'Anthropic\RequestOptions',
     'GuzzleHttp\Client',
     'GuzzleHttp\Exception\ClientException',
     'Http\Discovery\Psr17Factory',

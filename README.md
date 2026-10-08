@@ -105,19 +105,22 @@ $client = OpenAI::factory()
 
 ## Anthropic (Claude)
 
-The package also bundles Anthropic's official PHP SDK, [`anthropic-ai/sdk`](https://github.com/anthropics/anthropic-sdk-php), for full Anthropic API support:
+The same patterns work against the Anthropic API: Messages (including streaming and token counting), Message Batches, Models, Files and Skills.
 
 ```php
-$client = OpenAI::anthropic(getenv('ANTHROPIC_API_KEY')); // returns an Anthropic\Client
+$client = OpenAI::anthropic(getenv('ANTHROPIC_API_KEY'));
 
-$message = $client->messages->create(
-    model: 'claude-opus-5-5',
-    maxTokens: 1024,
-    messages: [['role' => 'user', 'content' => 'Hello!']],
-);
+$response = $client->messages()->create([
+    'model' => 'claude-opus-5-5',
+    'max_tokens' => 1024,
+    'messages' => [['role' => 'user', 'content' => 'Hello!']],
+]);
+
+echo $response->text();
+echo $response->usage->cacheReadInputTokens; // prompt-cache usage
 ```
 
-See [docs/anthropic.md](docs/anthropic.md) for streaming, tool use, batches, files, cloud providers and testing.
+See [docs/anthropic.md](docs/anthropic.md) for streaming, tool use, prompt caching, batches, files, skills and testing with `AnthropicClientFake`.
 
 ## Usage
 
