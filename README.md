@@ -3595,6 +3595,8 @@ try {
 }
 ```
 
+> **Replay protection:** a signed request stays valid for the tolerance window (300 seconds by default). To reject replays, record each `webhook-id` header you have processed (e.g. in a cache with a TTL of at least the tolerance) and ignore duplicates.
+
 ## Services
 
 ### Azure
