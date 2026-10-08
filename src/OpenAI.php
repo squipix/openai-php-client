@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+use Anthropic\Client as AnthropicClient;
+use Anthropic\RequestOptions;
 use OpenAI\Client;
 use OpenAI\Factory;
+use Psr\Http\Client\ClientInterface;
 
 final class OpenAI
 {
@@ -25,5 +28,18 @@ final class OpenAI
     public static function factory(): Factory
     {
         return new Factory;
+    }
+
+    /**
+     * Creates an official Anthropic SDK client (anthropic-ai/sdk).
+     * Falls back to ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN / ant auth profiles when no key is given.
+     */
+    public static function anthropic(?string $apiKey = null, ?string $baseUrl = null, ?ClientInterface $httpClient = null): AnthropicClient
+    {
+        return new AnthropicClient(
+            apiKey: $apiKey,
+            baseUrl: $baseUrl,
+            requestOptions: $httpClient instanceof ClientInterface ? RequestOptions::with(transporter: $httpClient) : null,
+        );
     }
 }
