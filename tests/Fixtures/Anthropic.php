@@ -150,3 +150,19 @@ function anthropicBatchResults(): string
         .json_encode(['custom_id' => 'my-first-request', 'result' => ['type' => 'errored', 'error' => ['type' => 'error', 'error' => ['type' => 'invalid_request_error', 'message' => 'Bad']]]])."\r\n"
         .json_encode(['custom_id' => 'my-third-request', 'result' => ['type' => 'expired']]);
 }
+
+/**
+ * @return array<string, mixed>
+ */
+function anthropicFile(): array
+{
+    return [
+        'id' => 'file_011CNha8iCJcU1wXNR6q4V8w',
+        'type' => 'file',
+        'filename' => 'report.pdf',
+        'mime_type' => 'application/pdf',
+        'size_bytes' => 1024000,
+        'created_at' => '2026-10-08T12:00:00Z',
+        'downloadable' => true,
+    ];
+}

@@ -6,6 +6,7 @@ namespace OpenAI;
 
 use OpenAI\Contracts\AnthropicClientContract;
 use OpenAI\Contracts\TransporterContract;
+use OpenAI\Resources\Anthropic\Files;
 use OpenAI\Resources\Anthropic\Messages;
 use OpenAI\Resources\Anthropic\Models;
 
@@ -27,6 +28,16 @@ final class AnthropicClient implements AnthropicClientContract
     public function messages(): Messages
     {
         return new Messages($this->transporter);
+    }
+
+    /**
+     * Upload and manage files to reference in Messages requests.
+     *
+     * @see https://docs.claude.com/en/api/files-create
+     */
+    public function files(): Files
+    {
+        return new Files($this->transporter);
     }
 
     /**
