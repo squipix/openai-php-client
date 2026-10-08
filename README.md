@@ -14,6 +14,7 @@
 
 ## Table of Contents
 - [Get Started](#get-started)
+- [Anthropic (Claude)](#anthropic-claude)
 - [Usage](#usage)
   - [Models Resource](#models-resource)
   - [Responses Resource](#responses-resource)
@@ -101,6 +102,22 @@ $client = OpenAI::factory()
     ]))
     ->make();
 ```
+
+## Anthropic (Claude)
+
+The package also bundles Anthropic's official PHP SDK, [`anthropic-ai/sdk`](https://github.com/anthropics/anthropic-sdk-php), for full Anthropic API support:
+
+```php
+$client = OpenAI::anthropic(getenv('ANTHROPIC_API_KEY')); // returns an Anthropic\Client
+
+$message = $client->messages->create(
+    model: 'claude-opus-5-5',
+    maxTokens: 1024,
+    messages: [['role' => 'user', 'content' => 'Hello!']],
+);
+```
+
+See [docs/anthropic.md](docs/anthropic.md) for streaming, tool use, batches, files, cloud providers and testing.
 
 ## Usage
 

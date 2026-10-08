@@ -33,6 +33,7 @@ Welcome to the documentation and usage manual for `squipix/openai-php-client`, a
    - [Azure OpenAI Service Configuration](advanced.md#azure-openai-service)
 6. [Testing & Mocking Guide](testing.md)
 7. [Error Handling & Exceptions](error-handling.md)
+8. [Anthropic (Claude) API](anthropic.md)
 
 ---
 

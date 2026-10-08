@@ -61,3 +61,5 @@ This document details the internal design and key components of `squipix/openai-
 - `src/Testing`: Test resources and fake client implementations.
 - `src/Transporters`: Transport layer converting high-level payloads to PSR-7 requests and dispatching them.
 - `src/Webhooks`: Cryptographic signature verification for inbound OpenAI webhooks.
+
+Anthropic (Claude) calls bypass this stack entirely: `OpenAI::anthropic()` returns the official `anthropic-ai/sdk` client, which brings its own resources, transport, retries and exceptions. See [anthropic.md](anthropic.md).
