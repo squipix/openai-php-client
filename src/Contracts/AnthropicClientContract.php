@@ -5,6 +5,7 @@ namespace OpenAI\Contracts;
 use OpenAI\Contracts\Resources\Anthropic\FilesContract;
 use OpenAI\Contracts\Resources\Anthropic\MessagesContract;
 use OpenAI\Contracts\Resources\Anthropic\ModelsContract;
+use OpenAI\Contracts\Resources\Anthropic\SkillsContract;
 
 interface AnthropicClientContract
 {
@@ -28,4 +29,11 @@ interface AnthropicClientContract
      * @see https://docs.claude.com/en/api/models-list
      */
     public function models(): ModelsContract;
+
+    /**
+     * Create and manage custom Agent Skills and their versions.
+     *
+     * @see https://docs.claude.com/en/api/skills/create-skill
+     */
+    public function skills(): SkillsContract;
 }

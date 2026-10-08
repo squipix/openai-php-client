@@ -8,6 +8,7 @@ use OpenAI\Responses\StreamResponse;
 use OpenAI\Testing\Resources\Anthropic\FilesTestResource;
 use OpenAI\Testing\Resources\Anthropic\MessagesTestResource;
 use OpenAI\Testing\Resources\Anthropic\ModelsTestResource;
+use OpenAI\Testing\Resources\Anthropic\SkillsTestResource;
 use Throwable;
 
 /**
@@ -62,5 +63,10 @@ class AnthropicClientFake implements AnthropicClientContract
     public function models(): ModelsTestResource
     {
         return new ModelsTestResource($this->recorder);
+    }
+
+    public function skills(): SkillsTestResource
+    {
+        return new SkillsTestResource($this->recorder);
     }
 }

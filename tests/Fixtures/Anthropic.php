@@ -166,3 +166,48 @@ function anthropicFile(): array
         'downloadable' => true,
     ];
 }
+
+/**
+ * @return array<string, mixed>
+ */
+function anthropicSkill(): array
+{
+    return [
+        'id' => 'skill_01JAbcdefghijklmnopqrstuvw',
+        'type' => 'skill',
+        'display_name' => 'Excel Report Builder',
+        'latest_version_id' => '1759178010641129',
+        'source' => 'custom',
+        'created_at' => '2026-10-08T12:00:00Z',
+        'updated_at' => '2026-10-08T13:00:00Z',
+    ];
+}
+
+/**
+ * @return array<string, mixed>
+ */
+function anthropicSkillVersion(): array
+{
+    return [
+        'id' => '1759178010641129',
+        'type' => 'skill_version',
+        'skill_id' => 'skill_01JAbcdefghijklmnopqrstuvw',
+        'name' => 'excel-report-builder',
+        'description' => 'Builds formatted Excel reports from CSV data.',
+        'created_at' => '2026-10-08T12:00:00Z',
+    ];
+}
+
+/**
+ * @param  array<string, mixed>  $item
+ * @return array<string, mixed>
+ */
+function anthropicPage(array $item): array
+{
+    return [
+        'data' => [$item, $item],
+        'has_more' => false,
+        'first_id' => $item['id'],
+        'last_id' => $item['id'],
+    ];
+}

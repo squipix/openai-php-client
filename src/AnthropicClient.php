@@ -9,6 +9,7 @@ use OpenAI\Contracts\TransporterContract;
 use OpenAI\Resources\Anthropic\Files;
 use OpenAI\Resources\Anthropic\Messages;
 use OpenAI\Resources\Anthropic\Models;
+use OpenAI\Resources\Anthropic\Skills;
 
 final class AnthropicClient implements AnthropicClientContract
 {
@@ -48,5 +49,15 @@ final class AnthropicClient implements AnthropicClientContract
     public function models(): Models
     {
         return new Models($this->transporter);
+    }
+
+    /**
+     * Create and manage custom Agent Skills and their versions.
+     *
+     * @see https://docs.claude.com/en/api/skills/create-skill
+     */
+    public function skills(): Skills
+    {
+        return new Skills($this->transporter);
     }
 }
