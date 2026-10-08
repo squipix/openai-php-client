@@ -1,7 +1,7 @@
 {
     "name": "squipix/openai-php-client",
-    "description": "OpenAI PHP is a supercharged PHP API client that allows you to interact with the Open AI API",
-    "keywords": ["php", "openai", "sdk", "codex", "GPT-3", "DALL-E", "api", "client", "natural", "language", "processing"],
+    "description": "OpenAI PHP is a supercharged PHP API client that allows you to interact with the Open AI API, with Anthropic (Claude) API support via the official anthropic-ai/sdk",
+    "keywords": ["php", "openai", "anthropic", "claude", "sdk", "codex", "GPT-3", "DALL-E", "api", "client", "natural", "language", "processing"],
     "license": "MIT",
     "version": "1.0.0",
     "authors": [
@@ -15,6 +15,7 @@
     ],
     "require": {
         "php": "^8.2.0",
+        "anthropic-ai/sdk": "^0.56",
         "php-http/discovery": "^1.20.0",
         "php-http/multipart-stream-builder": "^1.4.2",
         "psr/http-client": "^1.0.3",
