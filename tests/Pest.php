@@ -1,5 +1,6 @@
 <?php
 
+use OpenAI\AnthropicClient;
 use OpenAI\Client;
 use OpenAI\Contracts\TransporterContract;
 use OpenAI\ValueObjects\ApiKey;
@@ -12,6 +13,26 @@ use OpenAI\ValueObjects\Transporter\Response;
 use Psr\Http\Message\ResponseInterface;
 
 function mockClient(string $method, string $resource, array $params, Response|AdaptableResponse|ResponseInterface|string $response, $methodName = 'requestObject', bool $validateParams = true)
+{
+    return new Client(mockTransporter($method, $resource, $params, $response, $methodName, $validateParams));
+}
+
+function anthropicMockClient(string $method, string $resource, array $params, Response|ResponseInterface|string $response, $methodName = 'requestObject', bool $validateParams = true)
+{
+    return new AnthropicClient(mockTransporter($method, $resource, $params, $response, $methodName, $validateParams));
+}
+
+function anthropicMockContentClient(string $method, string $resource, array $params, string $response, bool $validateParams = true)
+{
+    return anthropicMockClient($method, $resource, $params, $response, 'requestContent', $validateParams);
+}
+
+function anthropicMockStreamClient(string $method, string $resource, array $params, ResponseInterface $response, bool $validateParams = true)
+{
+    return anthropicMockClient($method, $resource, $params, $response, 'requestStream', $validateParams);
+}
+
+function mockTransporter(string $method, string $resource, array $params, Response|AdaptableResponse|ResponseInterface|string $response, $methodName = 'requestObject', bool $validateParams = true): TransporterContract
 {
     $transporter = Mockery::mock(TransporterContract::class);
 
@@ -46,7 +67,7 @@ function mockClient(string $method, string $resource, array $params, Response|Ad
                 && $request->getUri()->getPath() === "/v1/$resource";
         })->andReturn($response);
 
-    return new Client($transporter);
+    return $transporter;
 }
 
 function mockContentClient(string $method, string $resource, array $params, string $response, bool $validateParams = true)

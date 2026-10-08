@@ -67,3 +67,14 @@ it('can have custom header', function () {
         'X-Foo' => 'bar',
     ]);
 });
+
+it('can be created with anthropic authorization', function () {
+    $headers = Headers::withAnthropicAuthorization(ApiKey::from('sk-ant-foo'))
+        ->withContentType(ContentType::JSON);
+
+    expect($headers->toArray())->toBe([
+        'x-api-key' => 'sk-ant-foo',
+        'anthropic-version' => '2023-06-01',
+        'Content-Type' => 'application/json',
+    ]);
+});

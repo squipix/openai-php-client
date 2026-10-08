@@ -70,7 +70,7 @@ final class MetaInformation implements MetaInformationContract
 
         $headers = array_change_key_case($headers, CASE_LOWER);
 
-        $requestId = $headers['x-request-id'][0] ?? null;
+        $requestId = $headers['x-request-id'][0] ?? $headers['request-id'][0] ?? null;
 
         $openai = MetaInformationOpenAI::from([
             'model' => $headers['openai-model'][0] ?? null,

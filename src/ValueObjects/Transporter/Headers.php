@@ -41,6 +41,17 @@ final class Headers
     }
 
     /**
+     * Creates a new Headers value object with the given Anthropic API key and API version.
+     */
+    public static function withAnthropicAuthorization(ApiKey $apiKey, string $version = '2023-06-01'): self
+    {
+        return new self([
+            'x-api-key' => $apiKey->toString(),
+            'anthropic-version' => $version,
+        ]);
+    }
+
+    /**
      * Creates a new Headers value object, with the given content type, and the existing headers.
      */
     public function withContentType(ContentType $contentType, string $suffix = ''): self

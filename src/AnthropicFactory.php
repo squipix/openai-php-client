@@ -1,10 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OpenAI;
 
 use Closure;
-use Exception;
-use GuzzleHttp\Client as GuzzleClient;
 use Http\Discovery\Psr18ClientDiscovery;
 use OpenAI\Transporters\HttpTransporter;
 use OpenAI\ValueObjects\ApiKey;
@@ -12,11 +12,8 @@ use OpenAI\ValueObjects\Transporter\BaseUri;
 use OpenAI\ValueObjects\Transporter\Headers;
 use OpenAI\ValueObjects\Transporter\QueryParams;
 use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use Symfony\Component\HttpClient\Psr18Client;
 
-final class Factory
+final class AnthropicFactory
 {
     /**
      * The API key for the requests.
@@ -24,14 +21,9 @@ final class Factory
     private ?string $apiKey = null;
 
     /**
-     * The organization for the requests.
+     * The Anthropic API version sent with every request.
      */
-    private ?string $organization = null;
-
-    /**
-     * The project for the requests.
-     */
-    private ?string $project = null;
+    private string $version = '2023-06-01';
 
     /**
      * The HTTP client for the requests.
@@ -70,21 +62,11 @@ final class Factory
     }
 
     /**
-     * Sets the organization for the requests.
+     * Sets the `anthropic-version` header for the requests.
      */
-    public function withOrganization(?string $organization): self
+    public function withVersion(string $version): self
     {
-        $this->organization = $organization;
-
-        return $this;
-    }
-
-    /**
-     * Sets the project for the requests.
-     */
-    public function withProject(?string $project): self
-    {
-        $this->project = $project;
+        $this->version = $version;
 
         return $this;
     }
@@ -112,7 +94,7 @@ final class Factory
 
     /**
      * Sets the base URI for the requests.
-     * If no URI is provided the factory will use the default OpenAI API URI.
+     * If no URI is provided the factory will use the default Anthropic API URI.
      */
     public function withBaseUri(string $baseUri): self
     {
@@ -122,7 +104,7 @@ final class Factory
     }
 
     /**
-     * Adds a custom HTTP header to the requests.
+     * Adds a custom HTTP header to the requests, e.g. `anthropic-beta`.
      */
     public function withHttpHeader(string $name, string $value): self
     {
@@ -142,29 +124,19 @@ final class Factory
     }
 
     /**
-     * Creates a new Open AI Client.
+     * Creates a new Anthropic Client.
      */
-    public function make(): Client
+    public function make(): AnthropicClient
     {
-        $headers = Headers::create();
-
-        if ($this->apiKey !== null) {
-            $headers = Headers::withAuthorization(ApiKey::from($this->apiKey));
-        }
-
-        if ($this->organization !== null) {
-            $headers = $headers->withOrganization($this->organization);
-        }
-
-        if ($this->project !== null) {
-            $headers = $headers->withProject($this->project);
-        }
+        $headers = $this->apiKey !== null
+            ? Headers::withAnthropicAuthorization(ApiKey::from($this->apiKey), $this->version)
+            : Headers::create()->withCustomHeader('anthropic-version', $this->version);
 
         foreach ($this->headers as $name => $value) {
             $headers = $headers->withCustomHeader($name, $value);
         }
 
-        $baseUri = BaseUri::from($this->baseUri ?: 'api.openai.com/v1');
+        $baseUri = BaseUri::from($this->baseUri ?: 'api.anthropic.com/v1');
 
         $queryParams = QueryParams::create();
         foreach ($this->queryParams as $name => $value) {
@@ -173,34 +145,8 @@ final class Factory
 
         $client = $this->httpClient ??= Psr18ClientDiscovery::find();
 
-        $sendAsync = self::streamHandlerFor($client, $this->streamHandler);
+        $transporter = new HttpTransporter($client, $baseUri, $headers, $queryParams, Factory::streamHandlerFor($client, $this->streamHandler));
 
-        $transporter = new HttpTransporter($client, $baseUri, $headers, $queryParams, $sendAsync);
-
-        return new Client($transporter);
-    }
-
-    /**
-     * Creates a new stream handler for "stream" requests.
-     *
-     * @internal
-     */
-    public static function streamHandlerFor(ClientInterface $client, ?Closure $streamHandler = null): Closure
-    {
-        if (! is_null($streamHandler)) {
-            return $streamHandler;
-        }
-
-        if ($client instanceof GuzzleClient) {
-            return fn (RequestInterface $request): ResponseInterface => $client->send($request, ['stream' => true]);
-        }
-
-        if ($client instanceof Psr18Client) { // @phpstan-ignore-line
-            return fn (RequestInterface $request): ResponseInterface => $client->sendRequest($request); // @phpstan-ignore-line
-        }
-
-        return function (RequestInterface $_): never {
-            throw new Exception('To use stream requests you must provide an stream handler closure via the OpenAI factory.');
-        };
+        return new AnthropicClient($transporter);
     }
 }
