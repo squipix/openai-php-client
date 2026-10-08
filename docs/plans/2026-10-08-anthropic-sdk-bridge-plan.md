@@ -1,3 +1,5 @@
+> Superseded by [2026-10-08-anthropic-native-client-plan.md](2026-10-08-anthropic-native-client-plan.md).
+
 # Anthropic API Support via `anthropic-ai/sdk`: Plan for 2026-10-08
 
 ## Context
