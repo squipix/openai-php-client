@@ -3,7 +3,7 @@
     "description": "OpenAI PHP is a supercharged PHP API client that allows you to interact with the Open AI API and the Anthropic (Claude) API",
     "keywords": ["php", "openai", "anthropic", "claude", "sdk", "codex", "GPT-3", "DALL-E", "api", "client", "natural", "language", "processing"],
     "license": "MIT",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "authors": [
         {
             "name": "Nuno Maduro",

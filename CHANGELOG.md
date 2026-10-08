@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
  * Upgrade dev dependency `guzzlehttp/guzzle` to `^8.2` and `guzzlehttp/psr7` to `^3.1`.
  * Upgrade dev dependency `phpstan/phpstan` to `2.2.16`.
 
+# v1.1.0 (2026-10-08)
+### Added
+ * Native Anthropic (Claude) API client: `OpenAI::anthropic($apiKey)` and `OpenAI::anthropicFactory()`.
+ * Anthropic Messages: `create`, `createStreamed` (server-sent events) and `countTokens`, with typed content blocks.
+ * Prompt-cache usage on Anthropic responses: `cacheCreationInputTokens`, `cacheReadInputTokens`, per-TTL `cacheCreation` and `totalInputTokens()`.
+ * Anthropic Message Batches (`messages()->batches()`), Models, Files, and Skills with versions.
+ * `OpenAI\Testing\AnthropicClientFake` and `fake()` on every Anthropic response.
+
 # v0.21.0 (2026-09-17)
 ### Added
  * Add support for programmatic tool calling in Responses API. ([#790](https://github.com/openai-php/client/pull/790))
