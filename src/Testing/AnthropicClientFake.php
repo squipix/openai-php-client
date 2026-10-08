@@ -5,6 +5,7 @@ namespace OpenAI\Testing;
 use OpenAI\Contracts\AnthropicClientContract;
 use OpenAI\Contracts\ResponseContract;
 use OpenAI\Responses\StreamResponse;
+use OpenAI\Testing\Resources\Anthropic\MessagesTestResource;
 use OpenAI\Testing\Resources\Anthropic\ModelsTestResource;
 use Throwable;
 
@@ -45,6 +46,11 @@ class AnthropicClientFake implements AnthropicClientContract
     public function assertNothingSent(): void
     {
         $this->recorder->assertNothingSent();
+    }
+
+    public function messages(): MessagesTestResource
+    {
+        return new MessagesTestResource($this->recorder);
     }
 
     public function models(): ModelsTestResource

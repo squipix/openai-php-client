@@ -6,6 +6,7 @@ namespace OpenAI;
 
 use OpenAI\Contracts\AnthropicClientContract;
 use OpenAI\Contracts\TransporterContract;
+use OpenAI\Resources\Anthropic\Messages;
 use OpenAI\Resources\Anthropic\Models;
 
 final class AnthropicClient implements AnthropicClientContract
@@ -16,6 +17,16 @@ final class AnthropicClient implements AnthropicClientContract
     public function __construct(private readonly TransporterContract $transporter)
     {
         // ..
+    }
+
+    /**
+     * Create messages with Claude, count tokens, and run message batches.
+     *
+     * @see https://docs.claude.com/en/api/messages
+     */
+    public function messages(): Messages
+    {
+        return new Messages($this->transporter);
     }
 
     /**
